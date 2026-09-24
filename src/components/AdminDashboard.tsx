@@ -135,15 +135,51 @@ export default function AdminDashboard({ initialCatalog, initialQuotes, initialS
       .sort((a, b) => b.count - a.count);
   }, [initialSearchLogs]);
 
+  const uploadBase64ToR2 = async (base64Str: string, productId: string, filename: string) => {
+    if (!base64Str.startsWith('data:image/')) return base64Str; // Already a URL or empty
+    
+    const mimeType = base64Str.substring(base64Str.indexOf(':') + 1, base64Str.indexOf(';'));
+    const authRes = await fetch('/api/upload-auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ productId, filename, contentType: mimeType })
+    });
+    
+    const authData = await authRes.json();
+    if (!authData.success) throw new Error('Failed to get upload URL');
+
+    const base64Data = base64Str.split(',')[1];
+    const byteString = atob(base64Data);
+    const ab = new ArrayBuffer(byteString.length);
+    const ia = new Uint8Array(ab);
+    for (let i = 0; i < byteString.length; i++) {
+      ia[i] = byteString.charCodeAt(i);
+    }
+    const blob = new Blob([ab], { type: mimeType });
+
+    await fetch(authData.presignedUrl, {
+      method: 'PUT',
+      headers: { 'Content-Type': mimeType },
+      body: blob
+    });
+
+    return authData.cdnUrl;
+  };
+
   const handleAddProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     
     try {
+      const productId = crypto.randomUUID();
+      const finalImage = await uploadBase64ToR2(newProduct.thumbnails?.[0] || newProduct.image, productId, 'image.jpg');
+      
       const payload = {
         ...newProduct,
+        id: productId,
+        visibilityStatus: 'published',
         moq: Number(newProduct.moq) || 1,
-        image: newProduct.thumbnails?.[0] || newProduct.image,
+        image: finalImage,
         specs: newProduct.specs.filter(s => s.label && s.value), // Remove empty specs
         features: [{ title: "NEW PRODUCT", desc: "Added from Admin Panel", icon: "ri-star-line" }], // Default placeholder
         thumbnails: newProduct.thumbnails?.length > 0 ? newProduct.thumbnails : [newProduct.image],
@@ -174,6 +210,59 @@ export default function AdminDashboard({ initialCatalog, initialQuotes, initialS
       }
     } catch (err) {
       alert('Error adding product');
+    }
+    setIsSubmitting(false);
+  };
+
+  const handleCancel = () => {
+    if (confirm('Are you sure you want to cancel? All unsaved changes will be lost.')) {
+      setNewProduct({ 
+        title: '', category: 'MINI CRANES', description: '', image: '', thumbnails: [] as string[], specs: [{ label: '', value: '' }], tag: '', videoUrl: '',
+        documents: [{ label: '', url: '' }], badges: [] as string[], moq: 1 as number | string, stockStatus: 'In Stock - Ships in 48hrs', 
+        pricingTiers: [{ minQty: 1, maxQty: 10, price: 0 }], hideExactPrices: false, 
+        testimonials: [{ clientName: '', reviewText: '', rating: 5, isVerified: false }], 
+        contactConfig: { phone: '', enableRfqModal: true } 
+      });
+      localStorage.removeItem('admin_product_draft');
+      router.push('/admin');
+    }
+  };
+
+  const handleSaveDraft = async () => {
+    setIsSubmitting(true);
+    try {
+      const productId = crypto.randomUUID();
+      const finalImage = await uploadBase64ToR2(newProduct.thumbnails?.[0] || newProduct.image, productId, 'image.jpg');
+
+      const payload = {
+        ...newProduct,
+        id: productId,
+        visibilityStatus: 'draft',
+        moq: Number(newProduct.moq) || 1,
+        image: finalImage,
+        specs: newProduct.specs.filter(s => s.label && s.value),
+        features: [{ title: "NEW PRODUCT", desc: "Added from Admin Panel", icon: "ri-star-line" }],
+        thumbnails: newProduct.thumbnails?.length > 0 ? newProduct.thumbnails : [newProduct.image],
+        extendedSpecs: newProduct.specs.filter(s => s.label && s.value)
+      };
+
+      const res = await fetch('/api/catalog', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      
+      const data = await res.json();
+      if (data.success) {
+        setCatalog([...catalog, data.product]);
+        alert('Draft Saved Successfully!');
+        localStorage.removeItem('admin_product_draft');
+        router.push('/admin');
+      } else {
+        alert('Error saving draft: ' + data.error);
+      }
+    } catch (err) {
+      alert('Error saving draft');
     }
     setIsSubmitting(false);
   };
@@ -574,9 +663,19 @@ export default function AdminDashboard({ initialCatalog, initialQuotes, initialS
                   </details>
 
 
-                  <button type="submit" className="admin-btn-primary" disabled={isSubmitting} style={{ width: '100%', padding: '16px', fontSize: '16px', marginTop: '16px' }}>
-                    {isSubmitting ? 'Publishing...' : 'Publish Enterprise Product'}
-                  </button>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '24px' }}>
+                    <div style={{ display: 'flex', gap: '12px' }}>
+                      <button type="button" onClick={handleCancel} disabled={isSubmitting} style={{ flex: 1, padding: '16px', fontSize: '16px', background: '#ef4444', border: '1px solid #dc2626', color: '#ffffff', borderRadius: '4px', cursor: 'pointer', fontWeight: 600, transition: 'all 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#dc2626'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#ef4444'}>
+                        Cancel
+                      </button>
+                      <button type="submit" className="admin-btn-primary" disabled={isSubmitting} style={{ flex: 1, padding: '16px', fontSize: '16px', borderRadius: '4px' }}>
+                        {isSubmitting ? 'Publishing...' : 'Publish'}
+                      </button>
+                    </div>
+                    <button type="button" onClick={handleSaveDraft} disabled={isSubmitting} style={{ width: '100%', padding: '16px', fontSize: '16px', background: '#3b82f6', border: '1px solid #2563eb', color: '#ffffff', borderRadius: '4px', cursor: 'pointer', fontWeight: 600, transition: 'all 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#2563eb'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#3b82f6'}>
+                      Save as Draft
+                    </button>
+                  </div>
                 </form>
               </div>
 

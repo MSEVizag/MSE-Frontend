@@ -4,17 +4,39 @@ import path from 'path';
 import AdminDashboard from '../../../components/AdminDashboard';
 import '../admin.css';
 
-export default function AdminQuotesPage() {
+export const dynamic = 'force-dynamic';
+
+export default async function AdminQuotesPage() {
   const dataDir = path.join(process.cwd(), 'public', 'data');
   
+  // Fetch Catalog from Database API
   let catalog = [];
-  try { catalog = JSON.parse(fs.readFileSync(path.join(dataDir, 'catalog.json'), 'utf-8')); } catch (e) {}
+  try {
+    const backendUrl = process.env.BACKEND_URL || 'http://localhost:3005';
+    const res = await fetch(`${backendUrl}/api/catalog`, { cache: 'no-store' });
+    if (res.ok) {
+      const data = await res.json();
+      catalog = data.catalog || [];
+    }
+  } catch (e) {
+    console.error('Error fetching catalog from DB API');
+  }
 
+  // Read Quotes (still local JSON)
   let quotes = [];
-  try { quotes = JSON.parse(fs.readFileSync(path.join(dataDir, 'estimates-req.json'), 'utf-8')); } catch (e) {}
+  try {
+    const quotesData = fs.readFileSync(path.join(dataDir, 'estimates-req.json'), 'utf-8');
+    quotes = JSON.parse(quotesData);
+  } catch (e) { }
 
+  // Read Search Logs (still local JSON)
   let searchLogs = [];
-  try { searchLogs = JSON.parse(fs.readFileSync(path.join(dataDir, 'search-logs.json'), 'utf-8')); } catch (e) {}
+  try {
+    const searchData = fs.readFileSync(path.join(dataDir, 'search-logs.json'), 'utf-8');
+    searchLogs = JSON.parse(searchData);
+  } catch (e) { }
 
-  return <AdminDashboard initialCatalog={catalog} initialQuotes={quotes} initialSearchLogs={searchLogs} />;
+  return (
+    <AdminDashboard initialCatalog={catalog} initialQuotes={quotes} initialSearchLogs={searchLogs} />
+  );
 }

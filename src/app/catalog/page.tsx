@@ -3,7 +3,6 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import catalogDataRaw from '../../../public/data/catalog.json';
 import ComingSoonModal from '../../components/ComingSoonModal';
 import QuoteModal from '../../components/QuoteModal';
 import { Product } from '../../types';
@@ -18,6 +17,22 @@ function CatalogContent() {
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
+  const [catalogData, setCatalogData] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch('/api/catalog')
+      .then(res => res.json())
+      .then(data => {
+        if (data.catalog) setCatalogData(data.catalog);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Failed to fetch catalog', err);
+        setLoading(false);
+      });
+  }, []);
+
   // If the query param changes (e.g. user goes back/forward), update state
   useEffect(() => {
     const s = searchParams.get('search');
@@ -26,9 +41,6 @@ function CatalogContent() {
       setSearchQuery(s);
     }
   }, [searchParams]);
-
-  // Handle Search Logging
-  const catalogData = catalogDataRaw as Product[];
 
   const handleComingSoon = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -184,8 +196,11 @@ function CatalogContent() {
         </>
 
         {/* Product Grid */}
-        <div className="product-grid">
-          {filteredData.map((product) => (
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>Loading catalog...</div>
+        ) : (
+          <div className="product-grid">
+            {filteredData.map((product) => (
             <div key={product.id} className="product-card">
               {product.tag && <div className="product-badge">{product.tag}</div>}
               <div className="product-image-container">
@@ -205,12 +220,13 @@ function CatalogContent() {
               </div>
             </div>
           ))}
-          {filteredData.length === 0 && (
-            <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '40px', color: '#666' }}>
-              No equipment found matching your criteria.
-            </div>
-          )}
-        </div>
+            {filteredData.length === 0 && (
+              <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '40px', color: '#666' }}>
+                No equipment found matching your criteria.
+              </div>
+            )}
+          </div>
+        )}
 
         {/* CTA Banner */}
         <div className="cta-banner">

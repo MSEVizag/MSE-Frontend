@@ -4,7 +4,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import QRCode from 'react-qr-code';
-import catalogDataRaw from '../../../../public/data/catalog.json';
 import ComingSoonModal from '../../../components/ComingSoonModal';
 import QuoteModal from '../../../components/QuoteModal';
 import { Product } from '../../../types';
@@ -14,10 +13,27 @@ export default function ProductDetail() {
   const { id } = useParams() as { id: string };
   const router = useRouter();
   const [productSearch, setProductSearch] = useState('');
-  const catalogData = catalogDataRaw as Product[];
-  const product = catalogData.find(p => p.id === id);
+  const [catalogData, setCatalogData] = useState<Product[]>([]);
+  const [product, setProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [showBackToTop, setShowBackToTop] = useState(false);
+
+  useEffect(() => {
+    fetch('/api/catalog')
+      .then(res => res.json())
+      .then(data => {
+        if (data.catalog) {
+          setCatalogData(data.catalog);
+          setProduct(data.catalog.find((p: Product) => p.id === id) || null);
+        }
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Failed to fetch catalog', err);
+        setLoading(false);
+      });
+  }, [id]);
 
   // WhatsApp Integration State
   const [showQRModal, setShowQRModal] = useState(false);
@@ -25,6 +41,7 @@ export default function ProductDetail() {
   const BUSINESS_NUMBER = "917984627108"; // Placeholder business number
 
   const handleWhatsAppEnquiry = () => {
+    if (!product) return;
     const pageUrl = window.location.href;
     const message = `Hello MS Engineering, I am interested in ${product.title} (ID: ${product.id}).\n\nLink: ${pageUrl}`;
     const encodedMessage = encodeURIComponent(message);
@@ -57,7 +74,7 @@ export default function ProductDetail() {
   };
 
   // Gallery Navigation State
-  const thumbnails = product?.thumbnails || [product?.image];
+  const thumbnails = product?.thumbnails || (product?.image ? [product.image] : []);
   const [activeIdx, setActiveIdx] = useState(0);
   const activeImage = thumbnails[activeIdx];
 
@@ -103,6 +120,10 @@ export default function ProductDetail() {
 
     setBgPos({ x: percentX, y: percentY });
   };
+
+  if (loading) {
+    return <div className="product-not-found">Loading product...</div>;
+  }
 
   if (!product) {
     return <div className="product-not-found">Product not found. <Link href="/catalog">Return to Catalog</Link></div>;
