@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
 import { Product } from '../types';
 import ProductPreviewCanvas from './ProductPreviewCanvas';
 import '../app/catalog/catalog.css';
@@ -13,7 +14,14 @@ interface AdminDashboardProps {
 }
 
 export default function AdminDashboard({ initialCatalog, initialQuotes, initialSearchLogs }: AdminDashboardProps) {
-  const [activeTab, setActiveTab] = useState('catalog');
+  const pathname = usePathname();
+  const router = useRouter();
+  
+  const activeTab = pathname.includes('/admin/add-item') ? 'add' 
+                  : pathname.includes('/admin/quotes') ? 'quotes'
+                  : pathname.includes('/admin/analytics') ? 'analytics'
+                  : 'catalog';
+
   const [catalog, setCatalog] = useState(initialCatalog);
   const [catalogSearch, setCatalogSearch] = useState('');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -160,7 +168,7 @@ export default function AdminDashboard({ initialCatalog, initialQuotes, initialS
         });
         localStorage.removeItem('admin_product_draft');
         alert('Product Added Successfully!');
-        setActiveTab('catalog');
+        router.push('/admin');
       } else {
         alert('Error adding product: ' + data.error);
       }
@@ -210,17 +218,17 @@ export default function AdminDashboard({ initialCatalog, initialQuotes, initialS
           </button>
         </div>
         <nav className="admin-nav">
-          <button className={`admin-nav-item ${activeTab === 'catalog' ? 'active' : ''}`} onClick={() => setActiveTab('catalog')} title="Catalog Overview">
+          <button className={`admin-nav-item ${activeTab === 'catalog' ? 'active' : ''}`} onClick={() => router.push('/admin')} title="Catalog Overview">
             <i className="ri-list-check"></i> {!isSidebarCollapsed && "Catalog Overview"}
           </button>
-          <button className={`admin-nav-item ${activeTab === 'add' ? 'active' : ''}`} onClick={() => setActiveTab('add')} title="Add Product">
+          <button className={`admin-nav-item ${activeTab === 'add' ? 'active' : ''}`} onClick={() => router.push('/admin/add-item')} title="Add Product">
             <i className="ri-add-box-line"></i> {!isSidebarCollapsed && "Add Product"}
           </button>
-          <button className={`admin-nav-item ${activeTab === 'quotes' ? 'active' : ''}`} onClick={() => setActiveTab('quotes')} title="Quote Requests">
+          <button className={`admin-nav-item ${activeTab === 'quotes' ? 'active' : ''}`} onClick={() => router.push('/admin/quotes')} title="Quote Requests">
             <i className="ri-message-3-line"></i> {!isSidebarCollapsed && "Quote Requests"}
             {!isSidebarCollapsed && initialQuotes.length > 0 && <span className="admin-badge">{initialQuotes.length}</span>}
           </button>
-          <button className={`admin-nav-item ${activeTab === 'analytics' ? 'active' : ''}`} onClick={() => setActiveTab('analytics')} title="Search Analytics">
+          <button className={`admin-nav-item ${activeTab === 'analytics' ? 'active' : ''}`} onClick={() => router.push('/admin/analytics')} title="Search Analytics">
             <i className="ri-bar-chart-box-line"></i> {!isSidebarCollapsed && "Search Analytics"}
           </button>
           <div style={{ flex: 1 }}></div>
