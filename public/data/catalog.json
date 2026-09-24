@@ -1,0 +1,521 @@
+[
+  {
+    "id": "1",
+    "category": "CONCRETE MIXERS",
+    "title": "SAFARI 3000M",
+    "originalUrl": "https://safariequipments.co.in/SAFARI-3000-M.aspx",
+    "image": "/products/SAFARI-3000-M.jpg",
+    "thumbnails": [
+      "/products/SAFARI-3000-M.jpg",
+      "/products/SAFARI-3000-M-alt1.png",
+      "/products/SAFARI-3000-M-alt2.png"
+    ],
+    "description": "The SAFARI 3000 (Electric Motor) is a high-capacity reversible drum mixer designed for fast, consistent concrete production in large-scale construction projects. Built for performance and durability, this mixer is ideal for commercial buildings, infrastructure work, and high-volume RCC applications where speed and accuracy are critical. With its reversible mixing technology, the drum rotates forward for thorough blending of materials and reverses for efficient discharge, ensuring uniform concrete quality in every batch.",
+    "features": [
+      {
+        "title": "HEAVY DUTY",
+        "desc": "Twin Rollers & Balanced Chassis",
+        "icon": "ri-settings-4-line"
+      },
+      {
+        "title": "SMART HOPPER",
+        "desc": "Hydraulic Operated, Reduced Spillage",
+        "icon": "ri-water-flash-line"
+      },
+      {
+        "title": "PRECISION BATCH",
+        "desc": "Load Cell Weighing with Digital Display",
+        "icon": "ri-scales-3-line"
+      }
+    ],
+    "specs": [
+      {
+        "label": "Batch Capacity",
+        "value": "0.6 Cu.M"
+      },
+      {
+        "label": "Output",
+        "value": "12 Cu.M/Hr"
+      }
+    ],
+    "extendedSpecs": [
+      {
+        "label": "DRUM CAPACITY",
+        "value": "0.8 Cu.M"
+      },
+      {
+        "label": "BATCH CAPACITY",
+        "value": "0.6 Cu.M"
+      },
+      {
+        "label": "OUTPUT",
+        "value": "12 Cu.M/Hr"
+      },
+      {
+        "label": "PRIME MOVER",
+        "value": "10 HP Motor, 1 HP Water Pump, 0.5 HP Vibrating Motor"
+      },
+      {
+        "label": "GEAR BOX TYPE",
+        "value": "Planetary Gear Box"
+      },
+      {
+        "label": "CHASSIS",
+        "value": "Heavy Duty Balanced Chassis"
+      },
+      {
+        "label": "WHEELS",
+        "value": "600 x 16 Pneumatic Tyre – 4 Nos"
+      },
+      {
+        "label": "LOADING HOPPER",
+        "value": "Hydraulic Operated with Heavy Power Pack"
+      },
+      {
+        "label": "WEIGHING SYSTEM",
+        "value": "Load Cell Based with Digital Display"
+      },
+      {
+        "label": "DISCHARGE HEIGHT",
+        "value": "1300 mm"
+      },
+      {
+        "label": "DRUM DIMENSIONS",
+        "value": "Ø1320 x L2070 mm (5 mm Thickness)"
+      }
+    ],
+    "tag": "PREMIUM"
+  },
+  {
+    "id": "2",
+    "category": "MINI CRANES",
+    "title": "JK Mini Crane 500 R",
+    "originalUrl": "https://safariequipments.co.in/JK-Mini-500-R.aspx",
+    "image": "/products/JK-Mini-500R.jpg",
+    "thumbnails": [
+      "/products/JK-Mini-500R.jpg"
+    ],
+    "description": "The JK MINI CRANE 500 R is a high-performance mini crane specially designed for lifting heavier loads up to 500 kg on high-rise construction projects. Engineered for durability and smooth operation, it is the ideal lifting solution for cement bags, steel bars, concrete blocks, and other construction materials to upper floors with precision and safety. With its 360° boom rotation and customizable boom length, it allows flexible coverage without needing to reposition the machine—perfect for tight and busy job sites. Built to withstand the rigors of daily site operations, the JK MINI 500 R features a compact footprint and quick setup, making it suitable for both residential towers and commercial buildings.",
+    "features": [
+      {
+        "title": "NO FOUNDATION",
+        "desc": "Self-Balanced with Smart Counter Weight",
+        "icon": "ri-hammer-line"
+      },
+      {
+        "title": "QUICK SETUP",
+        "desc": "Detachable Parts for Portability",
+        "icon": "ri-truck-line"
+      },
+      {
+        "title": "SAFETY",
+        "desc": "Boom Rotation Locking System",
+        "icon": "ri-shield-check-line"
+      }
+    ],
+    "specs": [
+      {
+        "label": "Lifting Capacity",
+        "value": "500 Kg (Gross Load)"
+      },
+      {
+        "label": "Wire Rope",
+        "value": "8/10 mm, 6x36 Usha Martin"
+      }
+    ],
+    "extendedSpecs": [
+      {
+        "label": "LIFTING CAPACITY",
+        "value": "500 Kg (Gross Load)"
+      },
+      {
+        "label": "BOOM LENGTH / HEIGHT",
+        "value": "2050 mm / 2150 mm"
+      },
+      {
+        "label": "BOOM ROTATION",
+        "value": "360 Degree"
+      },
+      {
+        "label": "PRIME MOVER",
+        "value": "Imported Gearbox with Motor"
+      },
+      {
+        "label": "OPERATION",
+        "value": "Panel Board with Wired Remote Control"
+      },
+      {
+        "label": "WIRE ROPE",
+        "value": "8/10 mm, 6x36 Usha Martin"
+      }
+    ]
+  },
+  {
+    "id": "3",
+    "category": "HOISTS & PLATFORMS",
+    "title": "SAFARI Tower Hoist",
+    "originalUrl": "https://safariequipments.co.in/SAFARI-TH.aspx",
+    "image": "/products/Safari-TH.jpg",
+    "thumbnails": [
+      "/products/Safari-TH.jpg"
+    ],
+    "description": "The SAFARI TOWER HOIST is a robust tower hoist designed for lifting concrete and construction materials to heights up to 200 feet. Engineered for strength and stability, this heavy-duty hoist handles loads of up to 1000 kg, making it ideal for high-rise slab casting, structural RCC work, and material transfer in tall buildings. Driven by either an air-cooled diesel engine or (Electric Motor) (depending on height and site needs), the SAFARI TH operates using a friction roller drive system and high-tensile Usha Martin wire rope. Its stable H-frame scaffolding and scissors mechanism provide a secure and balanced tower structure.",
+    "features": [
+      {
+        "title": "HEAVY DUTY",
+        "desc": "1000 kg Gross Load Capacity",
+        "icon": "ri-building-4-line"
+      },
+      {
+        "title": "EASY INSTALL",
+        "desc": "No Foundation Required",
+        "icon": "ri-tools-line"
+      },
+      {
+        "title": "PREMIUM BUILD",
+        "desc": "H-frame B-Class ISI Marked Pipe",
+        "icon": "ri-medal-line"
+      }
+    ],
+    "specs": [
+      {
+        "label": "Capacity",
+        "value": "Upto 1000 kg Gross Load"
+      },
+      {
+        "label": "Height",
+        "value": "Upto 200 Ft"
+      }
+    ],
+    "extendedSpecs": [
+      {
+        "label": "MODEL NO.",
+        "value": "SAFARI TH"
+      },
+      {
+        "label": "CAPACITY",
+        "value": "Upto 1000 kg Gross Load"
+      },
+      {
+        "label": "HEIGHT",
+        "value": "Upto 200 Ft"
+      },
+      {
+        "label": "PRIME MOVERS",
+        "value": "Air Cooled Diesel Engine / Electric Motor"
+      },
+      {
+        "label": "COLUMN / TOWER",
+        "value": "50 x 50 x 6 mm Angle"
+      },
+      {
+        "label": "WIRE ROPE",
+        "value": "12 mm, 6x36"
+      },
+      {
+        "label": "DRIVE",
+        "value": "Friction Roller Type"
+      },
+      {
+        "label": "SCAFFOLDING",
+        "value": "H Frame - B class @ 31.75 mm pipe"
+      },
+      {
+        "label": "SKIP UNIT",
+        "value": "Heavy Duty with Safety Lock"
+      },
+      {
+        "label": "BUCKET CAPACITY",
+        "value": "0.25 Cubic Meters"
+      },
+      {
+        "label": "WHEELS",
+        "value": "600 x 16 Pneumatic Tyres - 4 Nos"
+      }
+    ]
+  },
+  {
+    "id": "4",
+    "category": "REBAR EQUIPMENT",
+    "title": "SAFARI BC-42",
+    "originalUrl": "https://safariequipments.co.in/SAFARI-BC-42.aspx",
+    "image": "/products/BC-42.jpg",
+    "thumbnails": [
+      "/products/BC-42.jpg"
+    ],
+    "description": "The SAFARI BC-42 is a powerful bar cutting machine designed for precise shearing of steel reinforcement bars on construction sites. Capable of cutting bars up to 32 mm in diameter, it is ideal for RCC work in buildings, foundations, and infrastructure projects. Powered by a 5 HP three-phase motor with a high-speed gearbox, the SAFARI BC-42 ensures clean, consistent cuts with minimal effort. Built for long operational life and heavy-duty site use, this machine delivers dependable performance in high-volume rebar processing, helping construction teams save time and improve cutting accuracy.",
+    "features": [
+      {
+        "title": "MAX CUTTING",
+        "desc": "Up to 32 mm shearing diameter",
+        "icon": "ri-slice-line"
+      },
+      {
+        "title": "POWERFUL MOTOR",
+        "desc": "5 HP Three Phase 2850 RPM",
+        "icon": "ri-flashlight-line"
+      }
+    ],
+    "specs": [
+      {
+        "label": "Max Shearing Diameter",
+        "value": "32 mm"
+      },
+      {
+        "label": "Prime Mover",
+        "value": "5 HP Three Phase Motor"
+      }
+    ],
+    "extendedSpecs": [
+      {
+        "label": "MODEL NO.",
+        "value": "SAFARI BC-42"
+      },
+      {
+        "label": "PRIME MOVER",
+        "value": "5 HP Three Phase 2850 RPM Motor with Gear Box"
+      },
+      {
+        "label": "MAX SHEARING DIAMETER",
+        "value": "32 mm"
+      }
+    ]
+  },
+  {
+    "id": "5",
+    "category": "CONCRETE EQUIPMENT",
+    "title": "SAFARI Groove Cutter",
+    "originalUrl": "https://safariequipments.co.in/GROOVE-CUTTER.aspx",
+    "image": "/products/Safari-GC.jpg",
+    "thumbnails": [
+      "/products/Safari-GC.jpg"
+    ],
+    "description": "The SAFARI GC Grove Cutter is a precision-engineered machine designed for cutting grooves in green and dry concrete surfaces. Ideal for expansion joint formation, flooring work, and controlled cracking, this cutter ensures clean, accurate cuts across industrial floors, pavements, and slabs. Powered by a 7.5 HP electric motor with starter, it supports multiple blade options (14\" to 16\") and thicknesses, allowing operators to adjust for various cutting needs. It delivers a cutting depth of up to 100 mm in green concrete and 60 mm in dry surfaces.",
+    "features": [
+      {
+        "title": "CUTTING DEPTH",
+        "desc": "Up to 100mm in Green Concrete",
+        "icon": "ri-ruler-line"
+      },
+      {
+        "title": "VERSATILE BLADE",
+        "desc": "14\", 15\", 16\" Diameter Options",
+        "icon": "ri-settings-5-line"
+      },
+      {
+        "title": "DUST SUPPRESSION",
+        "desc": "Integrated 20 L Water Tank",
+        "icon": "ri-drop-line"
+      }
+    ],
+    "specs": [
+      {
+        "label": "Cutting Depth",
+        "value": "Green: 100mm | Dry: 60mm"
+      },
+      {
+        "label": "Blade Options",
+        "value": "14\" / 15\" / 16\""
+      }
+    ],
+    "extendedSpecs": [
+      {
+        "label": "MODEL NO.",
+        "value": "SAFARI GC"
+      },
+      {
+        "label": "PRIME MOVER",
+        "value": "7.5 HP Electric Motor with Starter"
+      },
+      {
+        "label": "BLADE DIAMETER OPTIONS",
+        "value": "14\" / 15\" / 16\""
+      },
+      {
+        "label": "CUTTING SPEED",
+        "value": "25 mph"
+      },
+      {
+        "label": "BLADE THICKNESS OPTIONS",
+        "value": "3mm / 4mm / 5mm"
+      },
+      {
+        "label": "CUTTING DEPTH",
+        "value": "Green Concrete: 100 mm | Dry Concrete: 60 mm"
+      },
+      {
+        "label": "WATER TANK",
+        "value": "20 L"
+      },
+      {
+        "label": "WHEELS",
+        "value": "Rubber Coated Wheels - 2 Nos"
+      },
+      {
+        "label": "OVERALL DIMENSIONS",
+        "value": "L 1460 x W 600 x H 900 mm"
+      },
+      {
+        "label": "WEIGHT",
+        "value": "162 kg"
+      }
+    ]
+  },
+  {
+    "id": "6",
+    "category": "CONCRETE MIXERS",
+    "title": "SAFARI SFPM 2000",
+    "originalUrl": "https://safariequipments.co.in/SFPM-2000.aspx",
+    "image": "/products/pm1.jpg",
+    "thumbnails": [
+      "/products/pm1.jpg"
+    ],
+    "description": "The Safari SFPM 2000 is a heavy-duty passenger and material hoist built for reliable performance on high-rise construction sites. Designed with advanced safety systems and rugged engineering, it ensures smooth, secure vertical transportation. Powered by high-efficiency drive technology and precision control, the SFPM 2000 combines strength, safety, and smart automation in one dependable lift solution. Its robust structure and intelligent features make it ideal for challenging site conditions, offering consistent performance with minimal downtime.",
+    "features": [
+      {
+        "title": "HEAVY LOAD",
+        "desc": "2000 KG Capacity",
+        "icon": "ri-weight-line"
+      },
+      {
+        "title": "HIGH SPEED",
+        "desc": "30 m/min operational speed",
+        "icon": "ri-rocket-line"
+      },
+      {
+        "title": "SMART CONTROL",
+        "desc": "European VFD, HMI, and PLC",
+        "icon": "ri-cpu-line"
+      }
+    ],
+    "specs": [
+      {
+        "label": "Capacity",
+        "value": "2000 KG"
+      },
+      {
+        "label": "Mast Height",
+        "value": "75 Mtr"
+      }
+    ],
+    "extendedSpecs": [
+      {
+        "label": "MODEL NO.",
+        "value": "SAFARI SFPM 2000"
+      },
+      {
+        "label": "COUNTRY OF MANUFACTURE",
+        "value": "100% Made in India"
+      },
+      {
+        "label": "TYPE",
+        "value": "Rack & Pinion Passenger & Material Hoist"
+      },
+      {
+        "label": "LOAD CARRYING CAPACITY",
+        "value": "2000 KG"
+      },
+      {
+        "label": "SPEED",
+        "value": "30 m/min"
+      },
+      {
+        "label": "MAST HEIGHT",
+        "value": "75 Mtr"
+      },
+      {
+        "label": "MAST SIZE",
+        "value": "450mm x 450mm x 1508mm"
+      },
+      {
+        "label": "GEAR BOX TYPE",
+        "value": "Helical Bevel Geared Brake Motor"
+      },
+      {
+        "label": "VFD, HMI & PLC",
+        "value": "European VFD, HMI, and PLC – L&T"
+      },
+      {
+        "label": "POWER",
+        "value": "5.5 kW x 3 Nos"
+      },
+      {
+        "label": "CAGE SIZE",
+        "value": "3 (L) x 1.5 (W) x 1.5 (H) Mtr"
+      },
+      {
+        "label": "SAFETY DEVICE",
+        "value": "SSD 3500 / SAJ40"
+      }
+    ]
+  },
+  {
+    "title": "SAFARi crane",
+    "category": "MINI CRANES",
+    "description": " is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since 1966, when designers at Letraset and James Mosley, the librarian at St Bride Printing Library in London, took a 1914 Cicero translation and scrambled it to make dummy text for Letraset's Body Type sheets.",
+    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTHubbydWznIuzbg06Qzj8gYULErFTAY085R4pBq3PFbGTZfuUzUgRnwevc&s=10",
+    "specifications": "500kg weight",
+    "tag": "CRANES",
+    "specs": [
+      {
+        "label": "Key Spec",
+        "value": "500kg weight"
+      }
+    ],
+    "features": [
+      {
+        "title": "NEW PRODUCT",
+        "desc": "Added from Admin Panel",
+        "icon": "ri-star-line"
+      }
+    ],
+    "thumbnails": [
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTHubbydWznIuzbg06Qzj8gYULErFTAY085R4pBq3PFbGTZfuUzUgRnwevc&s=10"
+    ],
+    "extendedSpecs": [
+      {
+        "label": "KEY SPECIFICATION",
+        "value": "500kg weight"
+      }
+    ],
+    "id": "7"
+  },
+  {
+    "title": "safari",
+    "category": "MINI CRANES",
+    "description": " is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since 1966, when designers at Letraset and James Mosley, the librarian at St Bride Printing Library in London, took a 1914 Cicero translation and scrambled it to make dummy text for Letraset's Body Type sheets.",
+    "image": "https://www.uniccranes.com/wp-content/uploads/2025/01/NSUN8149-1024x768.jpg",
+    "specs": [
+      {
+        "label": "capacity ",
+        "value": "200 T"
+      },
+      {
+        "label": "Weight",
+        "value": "150kg"
+      }
+    ],
+    "tag": "",
+    "features": [
+      {
+        "title": "NEW PRODUCT",
+        "desc": "Added from Admin Panel",
+        "icon": "ri-star-line"
+      }
+    ],
+    "thumbnails": [
+      "https://www.uniccranes.com/wp-content/uploads/2025/01/NSUN8149-1024x768.jpg"
+    ],
+    "extendedSpecs": [
+      {
+        "label": "capacity ",
+        "value": "200 T"
+      },
+      {
+        "label": "Weight",
+        "value": "150kg"
+      }
+    ],
+    "id": "8"
+  }
+]

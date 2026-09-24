@@ -1,0 +1,264 @@
+/* --- Modal Overlay --- */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(43, 50, 58, 0.9); /* Dark overlay */
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* --- Modal Content Container --- */
+.modal-content {
+    display: flex;
+    width: 900px;
+    height: 600px;
+    background: #fff;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+}
+
+/* --- Left Side (Image) --- */
+.modal-left {
+    flex: 1;
+    background-image: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 50%), url('/images/safari_construction.png');
+    background-size: cover;
+    background-position: center;
+    position: relative;
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    color: #fff;
+}
+.modal-tag {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+}
+.orange-line {
+    width: 24px;
+    height: 2px;
+    background-color: var(--accent-orange);
+}
+.modal-brand {
+    font-size: 32px;
+    font-weight: 600;
+    margin: 0;
+}
+
+/* --- Right Side (Content) --- */
+.modal-right {
+    flex: 1;
+    padding: 60px 40px;
+    position: relative;
+    background-color: #fff;
+    background-image: 
+      linear-gradient(rgba(240, 240, 240, 1) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(240, 240, 240, 1) 1px, transparent 1px);
+    background-size: 20px 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Close button */
+.btn-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: #fff;
+    border: 1px solid #ddd;
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 18px;
+    color: #555;
+    transition: background 0.2s;
+}
+.btn-close:hover {
+    background: #f5f5f5;
+}
+
+.modal-header-logo h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #111;
+    margin: 0 0 4px;
+}
+.orange-underline {
+    width: 40px;
+    height: 3px;
+    background-color: var(--accent-orange);
+    margin-bottom: 40px;
+}
+
+.modal-title {
+    font-size: 28px;
+    font-weight: 600;
+    line-height: 1.3;
+    margin: 0 0 16px;
+    color: #111;
+}
+
+.modal-desc {
+    font-size: 14px;
+    color: #555;
+    line-height: 1.6;
+    margin-bottom: 40px;
+}
+
+/* --- Countdown Timer --- */
+.countdown-timer {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 40px;
+}
+.time-box {
+    background: #f9f9f9;
+    border: 1px solid #eee;
+    width: 80px;
+    height: 80px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+.time-number {
+    font-size: 28px;
+    font-weight: 700;
+    color: #111;
+}
+.time-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: #777;
+    letter-spacing: 1px;
+    margin-top: 4px;
+}
+.highlight-box {
+    border-bottom: 2px solid var(--accent-orange);
+}
+.highlight-box .time-number {
+    color: #8c421b; /* Dark brownish-orange */
+}
+
+/* --- Notify Form --- */
+.notify-form {
+    display: flex;
+    width: 100%;
+    margin-bottom: auto;
+}
+.input-group {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    border: 1px solid #ddd;
+    border-right: none;
+    padding: 0 16px;
+    background: #fff;
+}
+.input-group i {
+    color: #aaa;
+    margin-right: 12px;
+}
+.input-group input {
+    border: none;
+    outline: none;
+    width: 100%;
+    font-family: inherit;
+    font-size: 14px;
+    height: 100%;
+}
+.btn-notify {
+    background-color: var(--accent-orange);
+    color: #fff;
+    border: none;
+    padding: 0 24px;
+    height: 48px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* --- Footer Status --- */
+.modal-footer-status {
+    display: flex;
+    align-items: center;
+    font-size: 10px;
+    color: #777;
+    font-family: monospace;
+    font-weight: 600;
+}
+.status-dot {
+    width: 6px;
+    height: 6px;
+    background-color: var(--accent-orange);
+    border-radius: 50%;
+    margin-right: 8px;
+}
+.divider {
+    margin: 0 8px;
+    color: #ddd;
+}
+
+/* --- Mobile Responsiveness --- */
+@media (max-width: 950px) {
+    .modal-content {
+        width: 90%;
+        height: 80vh;
+        flex-direction: column;
+    }
+    .modal-left {
+        flex: 0.4;
+        padding: 20px;
+    }
+    .modal-right {
+        flex: 0.6;
+        padding: 30px 20px;
+        overflow-y: auto;
+    }
+}
+
+@media (max-width: 768px) {
+    .modal-content {
+        width: 95%;
+        height: 90vh;
+    }
+    .modal-brand {
+        font-size: 24px;
+    }
+    .countdown-timer {
+        gap: 12px;
+    }
+    .time-box {
+        width: 50px;
+        height: 50px;
+    }
+    .time-val {
+        font-size: 20px;
+    }
+    .notify-form {
+        flex-direction: column;
+        gap: 10px;
+    }
+    .input-group {
+        border-right: 1px solid #ddd;
+        height: 48px;
+    }
+}

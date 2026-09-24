@@ -1,0 +1,185 @@
+.quote-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  backdrop-filter: blur(4px);
+}
+
+.quote-modal-content {
+  background: #fff;
+  width: 500px;
+  max-width: 90%;
+  border-radius: 12px;
+  padding: 40px;
+  position: relative;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+  animation: scaleUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.quote-close-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: none;
+  border: none;
+  font-size: 28px;
+  cursor: pointer;
+  color: #999;
+  transition: color 0.2s;
+}
+.quote-close-btn:hover {
+  color: #333;
+}
+
+.quote-header {
+  margin-bottom: 30px;
+}
+.quote-header h2 {
+  font-size: 28px;
+  color: #111;
+  margin-bottom: 8px;
+}
+.orange-underline {
+  height: 4px;
+  width: 40px;
+  background-color: var(--accent-orange);
+  margin-bottom: 12px;
+}
+.quote-context {
+  font-size: 14px;
+  color: #666;
+  background: #f5f5f5;
+  padding: 8px 12px;
+  border-radius: 4px;
+  border-left: 3px solid var(--accent-orange);
+}
+
+.quote-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-row {
+  display: flex;
+  gap: 16px;
+}
+.form-row .form-group {
+  flex: 1;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.form-group label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #444;
+}
+.form-group input, .form-group textarea {
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+.form-group input:focus, .form-group textarea:focus {
+  outline: none;
+  border-color: var(--accent-orange);
+}
+
+.btn-submit-quote {
+  background-color: var(--accent-orange);
+  color: white;
+  border: none;
+  padding: 16px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-top: 10px;
+}
+.btn-submit-quote:hover:not(:disabled) {
+  background-color: #d15600;
+}
+.btn-submit-quote:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.error-msg {
+  color: #e74c3c;
+  font-size: 13px;
+  margin: 0;
+}
+
+.quote-success {
+  text-align: center;
+  padding: 40px 0;
+}
+.quote-success > i.ri-checkbox-circle-fill {
+  font-size: 64px;
+  color: #27ae60;
+  margin-bottom: 16px;
+  display: inline-block;
+}
+.quote-success h3 {
+  font-size: 24px;
+  margin-bottom: 8px;
+  color: #111;
+}
+.quote-success p {
+  color: #666;
+}
+
+.wa-qr-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  padding: 8px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+.wa-qr-container p {
+  font-size: 11px;
+  color: #666;
+  margin-top: 6px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+@media (max-width: 600px) {
+  .form-row {
+    flex-direction: column;
+    gap: 20px;
+  }
+  .quote-modal-content {
+    padding: 30px 20px;
+  }
+  .wa-fallback-box {
+    flex-direction: column !important;
+    text-align: center !important;
+  }
+  .wa-fallback-box > div {
+    text-align: center !important;
+  }
+  .wa-qr-container {
+    display: none !important;
+  }
+}

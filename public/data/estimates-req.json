@@ -1,0 +1,33 @@
+[
+  {
+    "id": "1782927626329",
+    "timestamp": "2026-07-01T17:40:26.329Z",
+    "name": "Vishnu.damuluri",
+    "email": "vishnu.damuluri@gmail.com",
+    "phone": "06281693119",
+    "requirements": "I would like a quote for SAFARI SFPM 2000.\n\n",
+    "context": "Interested in: SAFARI SFPM 2000 (ID: 6)"
+  },
+  {
+    "id": "1782927758162",
+    "timestamp": "2026-07-01T17:42:38.162Z",
+    "name": "Vishnu.damuluri",
+    "email": "vishnu.damuluri@gmail.com",
+    "phone": "+916281693119",
+    "quantity": "5",
+    "requirements": "I would like a quote for SAFARI SFPM 2000.\n\n",
+    "context": "Interested in: SAFARI SFPM 2000 (ID: 6)",
+    "url": "http://localhost:3000/catalog/6"
+  },
+  {
+    "id": "1782928068260",
+    "timestamp": "2026-07-01T17:47:48.260Z",
+    "name": "Vishnu.damuluri",
+    "email": "vishnu.damuluri@gmail.com",
+    "phone": "+916281693119",
+    "quantity": "4",
+    "requirements": "I would like a quote for SAFARI SFPM 2000.\n\n",
+    "context": "Interested in: SAFARI SFPM 2000 (ID: 6)",
+    "url": "http://localhost:3000/catalog/6"
+  }
+]

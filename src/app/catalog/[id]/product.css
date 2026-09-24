@@ -1,0 +1,590 @@
+/* --- Product Detail Main Container --- */
+.product-detail-main {
+    background-color: #fafafa;
+    min-height: calc(100vh - 80px);
+    padding: 60px 40px;
+}
+
+.product-detail-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    background: #fff;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.03);
+    border: 1px solid #eaeaea;
+    border-radius: 8px;
+    padding: 60px;
+}
+
+/* --- Top Section: Gallery & Info --- */
+.product-top-section {
+    display: flex;
+    gap: 60px;
+    margin-bottom: 80px;
+}
+
+@media (max-width: 900px) {
+    .product-top-section {
+        flex-direction: column;
+    }
+}
+
+/* --- Left: Gallery --- */
+.product-gallery {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.main-image-container {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border: 1px solid #eaeaea;
+    border-radius: 4px;
+    padding: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #fff;
+    cursor: crosshair;
+}
+
+.main-image-container img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+/* Image Zoom Lens */
+.zoom-lens {
+    position: absolute;
+    border: 1px solid #d4d4d4;
+    width: 150px;
+    height: 150px;
+    background-color: rgba(255, 255, 255, 0.4);
+    cursor: crosshair;
+    pointer-events: none;
+}
+
+/* Zoom Result Window */
+.zoom-result-window {
+    position: absolute;
+    top: 60px;
+    left: calc(50% + 30px);
+    width: 500px;
+    height: 500px;
+    background: #fff;
+    border: 1px solid #eaeaea;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    z-index: 100;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.zoom-result-image {
+    width: 100%;
+    height: 100%;
+    background-repeat: no-repeat;
+    background-size: 250%; /* Adjust zoom level */
+}
+
+/* Gallery Navigation Buttons */
+.gallery-nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #fff;
+    border: 1px solid #eaeaea;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 24px;
+    color: #333;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    z-index: 10;
+    transition: all 0.2s;
+}
+
+.gallery-nav-btn:hover {
+    background: var(--accent-orange);
+    color: #fff;
+    border-color: var(--accent-orange);
+}
+
+.gallery-nav-btn.prev {
+    left: 20px;
+}
+
+.gallery-nav-btn.next {
+    right: 20px;
+}
+
+.thumbnail-row {
+    display: flex;
+    gap: 16px;
+}
+
+.thumbnail-box {
+    width: 100px;
+    height: 100px;
+    border: 1px solid #eaeaea;
+    border-radius: 4px;
+    padding: 12px;
+    cursor: pointer;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.thumbnail-box img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.thumbnail-box:hover {
+    border-color: #ccc;
+}
+
+.thumbnail-box.active {
+    border: 2px solid var(--accent-orange);
+}
+
+/* --- Right: Product Info --- */
+.product-info-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.breadcrumbs {
+    display: flex;
+    align-items: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: #999;
+    letter-spacing: 1.5px;
+    margin-bottom: 16px;
+}
+
+.back-btn-left {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #999;
+    text-decoration: none;
+    transition: color 0.2s;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    align-self: flex-start;
+}
+.back-btn-left i {
+    font-size: 14px;
+}
+.back-btn-left:hover {
+    color: var(--accent-orange);
+}
+
+.breadcrumbs a {
+    text-decoration: none;
+    color: inherit;
+    transition: color 0.2s;
+}
+
+.breadcrumbs a:hover {
+    color: var(--accent-orange);
+}
+
+.breadcrumbs span {
+    color: #444;
+}
+
+.product-hero-title {
+    font-size: 42px;
+    font-weight: 700;
+    color: #111;
+    line-height: 1.1;
+    margin: 0 0 24px;
+    letter-spacing: -0.5px;
+}
+
+.product-description {
+    font-size: 16px;
+    color: #555;
+    line-height: 1.6;
+    margin-bottom: 40px;
+}
+
+/* CTAs */
+.product-cta-group {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 40px;
+    padding-bottom: 40px;
+    border-bottom: 1px solid #eaeaea;
+}
+
+.btn-get-quote {
+    background-color: var(--accent-orange);
+    color: #fff;
+    border: none;
+    padding: 14px 32px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.2s;
+}
+.btn-get-quote:hover {
+    background-color: #e06511;
+}
+
+.btn-enquire {
+    background-color: transparent;
+    color: #111;
+    border: 1px solid #111;
+    padding: 14px 32px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.btn-enquire:hover {
+    background-color: #111;
+    color: #fff;
+}
+
+/* Features */
+.product-features {
+    display: flex;
+    gap: 40px;
+}
+
+.feature-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.feature-icon {
+    color: var(--accent-orange);
+    font-size: 24px;
+    margin-top: -4px;
+}
+
+.feature-text h4 {
+    font-size: 12px;
+    font-weight: 700;
+    color: #111;
+    margin: 0 0 4px;
+    letter-spacing: 1px;
+}
+
+.feature-text p {
+    font-size: 12px;
+    color: #777;
+    margin: 0;
+}
+
+/* --- Bottom Section: Specifications --- */
+.specs-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 32px;
+}
+
+.orange-bar {
+    width: 32px;
+    height: 4px;
+    background-color: var(--accent-orange);
+}
+
+.specs-header h2 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #111;
+    margin: 0;
+    letter-spacing: 1px;
+}
+
+.specs-table {
+    border: 1px solid #eaeaea;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.spec-table-row {
+    display: flex;
+    border-bottom: 1px solid #eaeaea;
+    padding: 24px 32px;
+}
+.spec-table-row:last-child {
+    border-bottom: none;
+}
+
+.spec-table-label {
+    flex: 1;
+    font-size: 12px;
+    font-weight: 700;
+    color: #111;
+    letter-spacing: 1px;
+}
+
+.spec-table-value {
+    flex: 2;
+    font-size: 14px;
+    color: #555;
+}
+
+.view-original-container {
+    text-align: right;
+    margin-top: 12px;
+}
+
+.view-original-link {
+    font-size: 11px;
+    color: #ccc;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.view-original-link:hover {
+    color: #888;
+    text-decoration: underline;
+}
+
+.product-not-found {
+    padding: 100px;
+    text-align: center;
+    font-size: 20px;
+    font-weight: bold;
+}
+.product-not-found a {
+    color: var(--accent-orange);
+    margin-left: 10px;
+}
+
+/* --- Back to Top Button --- */
+.btn-back-to-top {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 45px;
+    height: 45px;
+    background-color: var(--accent-orange);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(20px);
+    transition: all 0.3s ease;
+    z-index: 999;
+}
+
+.btn-back-to-top.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.btn-back-to-top:hover {
+    background-color: #d15600;
+    transform: translateY(-3px);
+}
+
+/* --- WhatsApp Modal --- */
+.qr-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    backdrop-filter: blur(4px);
+}
+
+.qr-modal-content {
+    background: #fff;
+    width: 400px;
+    max-width: 90%;
+    border-radius: 12px;
+    padding: 32px;
+    position: relative;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+    text-align: center;
+    animation: scaleUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes scaleUp {
+    from { transform: scale(0.9); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.qr-close-btn {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #999;
+    transition: color 0.2s;
+}
+.qr-close-btn:hover {
+    color: #333;
+}
+
+.qr-header h3 {
+    margin: 12px 0 8px;
+    font-size: 22px;
+    color: #222;
+}
+.qr-header p {
+    font-size: 14px;
+    color: #666;
+    line-height: 1.5;
+    margin-bottom: 24px;
+}
+
+.whatsapp-icon-large {
+    font-size: 48px;
+    color: #25D366; /* WhatsApp Green */
+}
+
+.qr-code-box {
+    background: #fff;
+    padding: 16px;
+    border: 1px solid #eaeaea;
+    border-radius: 12px;
+    display: inline-block;
+    margin-bottom: 24px;
+}
+
+.qr-footer p {
+    font-size: 13px;
+    color: #888;
+    margin-bottom: 12px;
+}
+.btn-wa-web {
+    display: inline-block;
+    background-color: #25D366;
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+    transition: background-color 0.2s;
+}
+.btn-wa-web:hover {
+    background-color: #1ebe56;
+}
+
+/* WhatsApp Button */
+.btn-whatsapp {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 14px;
+    background-color: #25D366;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.2s;
+}
+.btn-whatsapp:hover {
+    background-color: #1ebe56;
+}
+
+/* --- Mobile Responsiveness --- */
+@media (max-width: 900px) {
+    .product-top-section {
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 768px) {
+    .product-detail-main {
+        padding: 20px 10px;
+    }
+    
+    .product-detail-container {
+        padding: 30px 20px;
+    }
+    
+    .product-hero-title {
+        font-size: 32px;
+    }
+    
+    /* Disable Zoom on Mobile */
+    .zoom-lens {
+        display: none !important;
+    }
+    .zoom-result-window {
+        display: none !important;
+    }
+    
+    .product-cta-group {
+        flex-direction: column;
+    }
+    .btn-get-quote, .btn-enquire {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .product-features {
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .spec-table-row {
+        flex-direction: column;
+        gap: 8px;
+        padding: 16px 20px;
+    }
+    .spec-table-label {
+        color: #999;
+    }
+    
+    .btn-back-to-top {
+        bottom: 20px;
+        right: 20px;
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
+    }
+}
