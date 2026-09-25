@@ -18,6 +18,20 @@ export default function ProductDetail() {
   const [loading, setLoading] = useState(true);
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [showBackToTop, setShowBackToTop] = useState(false);
+  
+  const [faqs, setFaqs] = useState<{question: string, answer: string}[]>([]);
+  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    fetch('/api/faq')
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          setFaqs(data);
+        }
+      })
+      .catch(err => console.error('Failed to fetch FAQs', err));
+  }, []);
 
   useEffect(() => {
     fetch('/api/catalog')
@@ -154,15 +168,23 @@ export default function ProductDetail() {
           </Link>
         </div>
         
-        <div className="nav-search-container desktop-only" style={{ flex: 2, display: 'flex', justifyContent: 'center' }}>
-          <form onSubmit={(e) => { e.preventDefault(); if(productSearch.trim()) router.push(`/catalog?search=${encodeURIComponent(productSearch.trim())}`); }} style={{ width: '100%', maxWidth: '400px', position: 'relative' }}>
-            <i className="ri-search-line" style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8', fontSize: '16px' }}></i>
+        <ul className="nav-links desktop-only" style={{ flex: 1, display: 'flex', justifyContent: 'center', whiteSpace: 'nowrap', alignItems: 'center', gap: '1rem' }}>
+          <li>
+            <Link href="/catalog" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', textDecoration: 'none', color: '#64748b', fontSize: '0.875rem', fontWeight: 500, padding: '8px 12px', borderRadius: '0.25rem', transition: 'background-color 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f1f5f9'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
+              <i className="ri-arrow-left-line"></i> Back
+            </Link>
+          </li>
+        </ul>
+
+        <div className="nav-search-container desktop-only" style={{ flex: 1, display: 'flex', justifyContent: 'flex-end' }}>
+          <form onSubmit={(e) => { e.preventDefault(); if(productSearch.trim()) router.push(`/catalog?search=${encodeURIComponent(productSearch.trim())}`); }} style={{ width: '100%', maxWidth: '25rem', position: 'relative' }}>
+            <i className="ri-search-line" style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8', fontSize: '1rem' }}></i>
             <input 
               type="text" 
               placeholder="Search catalog..." 
               value={productSearch}
               onChange={(e) => setProductSearch(e.target.value)}
-              style={{ width: '100%', padding: '12px 36px 12px 42px', borderRadius: '24px', border: '1px solid #e2e8f0', fontSize: '14px', outline: 'none', backgroundColor: '#f8fafc', transition: 'all 0.2s' }}
+              style={{ width: '100%', padding: '12px 36px 12px 42px', borderRadius: '1.5rem', border: '1px solid #e2e8f0', fontSize: '0.875rem', outline: 'none', backgroundColor: '#f8fafc', transition: 'all 0.2s' }}
               onFocus={(e) => { e.target.style.backgroundColor = '#fff'; e.target.style.borderColor = '#cbd5e1'; e.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)'; }}
               onBlur={(e) => { e.target.style.backgroundColor = '#f8fafc'; e.target.style.borderColor = '#e2e8f0'; e.target.style.boxShadow = 'none'; }}
             />
@@ -170,20 +192,11 @@ export default function ProductDetail() {
               <i 
                 className="ri-close-circle-fill" 
                 onClick={(e) => { e.preventDefault(); setProductSearch(''); }}
-                style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', cursor: 'pointer', color: '#cbd5e1', fontSize: '18px' }}
+                style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', cursor: 'pointer', color: '#cbd5e1', fontSize: '1.125rem' }}
               ></i>
             )}
           </form>
         </div>
-
-        <ul className="nav-links desktop-only" style={{ flex: 1, justifyContent: 'flex-end', whiteSpace: 'nowrap', alignItems: 'center', gap: '16px' }}>
-          <li>
-            <Link href="/catalog" style={{ display: 'flex', alignItems: 'center', gap: '4px', textDecoration: 'none', color: '#64748b', fontSize: '14px', fontWeight: 500, padding: '8px 12px', borderRadius: '4px', transition: 'background-color 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f1f5f9'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
-              <i className="ri-arrow-left-line"></i> Back to Catalog
-            </Link>
-          </li>
-          <li><a href="#" className="contact-btn" onClick={handleComingSoon} style={{ whiteSpace: 'nowrap' }}>Contact Us</a></li>
-        </ul>
         <button className="mobile-menu-icon" onClick={() => setIsMobileNavOpen(true)}>
           <i className="ri-menu-line"></i>
         </button>
@@ -219,9 +232,11 @@ export default function ProductDetail() {
                 onMouseLeave={() => setShowZoom(false)}
                 onMouseMove={handleMouseMove}
               >
-                <button className="gallery-nav-btn prev" onClick={handlePrev}>
-                  <i className="ri-arrow-left-s-line"></i>
-                </button>
+                {thumbnails.length > 1 && (
+                  <button className="gallery-nav-btn prev" onClick={handlePrev}>
+                    <i className="ri-arrow-left-s-line"></i>
+                  </button>
+                )}
 
                 <img src={activeImage} alt={product.title} />
 
@@ -229,9 +244,11 @@ export default function ProductDetail() {
                   <div className="zoom-lens" style={{ left: `${lensPos.x}px`, top: `${lensPos.y}px` }}></div>
                 )}
 
-                <button className="gallery-nav-btn next" onClick={handleNext}>
-                  <i className="ri-arrow-right-s-line"></i>
-                </button>
+                {thumbnails.length > 1 && (
+                  <button className="gallery-nav-btn next" onClick={handleNext}>
+                    <i className="ri-arrow-right-s-line"></i>
+                  </button>
+                )}
               </div>
               <div className="thumbnail-row">
                 {thumbnails.map((thumb, idx) => (
@@ -265,36 +282,118 @@ export default function ProductDetail() {
                 <Link href="/catalog">PRODUCTS</Link> / <span>{product.category}</span>
               </div>
 
-              <h1 className="product-hero-title">{product.title}</h1>
-
-              <p className="product-description">{product.description}</p>
-
-              <div className="product-cta-group">
-                <button className="btn-get-quote" onClick={handleGetQuote}>
-                  GET QUOTE <i className="ri-arrow-right-line"></i>
-                </button>
-                <button className="btn-whatsapp" onClick={handleWhatsAppEnquiry}>
-                  <i className="ri-whatsapp-line"></i> ENQUIRE ON WHATSAPP
-                </button>
-              </div>
-
-              <div className="product-features">
+              <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1.5rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
                 {product.features && product.features.map((feature, idx) => (
-                  <div key={idx} className="feature-item">
-                    <div className="feature-icon"><i className={feature.icon}></i></div>
-                    <div className="feature-text">
-                      <h4>{feature.title}</h4>
-                      <p>{feature.desc}</p>
-                    </div>
-                  </div>
+                  <span key={idx} style={{ background: '#fffbeb', border: '1px solid #fde68a', color: '#d97706', padding: '0.25rem 0.5rem', borderRadius: '0.25rem', fontSize: '0.75rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                    <i className={feature.icon}></i> {feature.title}
+                  </span>
                 ))}
               </div>
+
+              <h1 className="product-hero-title">{product.title}</h1>
+
+              {product.badges && product.badges.length > 0 && (
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
+                  {product.badges.map((badge, idx) => (
+                    <span key={idx} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', color: '#475569', padding: '4px 8px', borderRadius: '0.25rem', fontSize: '0.75rem', fontWeight: 600 }}>
+                      <i className="ri-verified-badge-line" style={{ color: '#3b82f6', marginRight: '0.25rem' }}></i>
+                      {badge}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', alignItems: 'center' }}>
+                {product.stockStatus && (
+                  <span style={{ color: product.stockStatus.toLowerCase().includes('stock') ? '#10b981' : '#f59e0b', fontWeight: 600, fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                    <i className="ri-box-3-line"></i> {product.stockStatus}
+                  </span>
+                )}
+                {product.moq && (
+                  <span style={{ color: '#64748b', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                    <i className="ri-shopping-cart-2-line"></i> MOQ: {product.moq} Units
+                  </span>
+                )}
+              </div>
+
+              {product.pricingTiers && product.pricingTiers.length > 0 && !product.hideExactPrices && (
+                <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '0.5rem', padding: '1rem', marginBottom: '1.5rem' }}>
+                  <h4 style={{ margin: '0 0 12px 0', fontSize: '0.875rem', color: '#334155' }}>Bulk Pricing</h4>
+                  <div style={{ display: 'grid', gap: '0.5rem' }}>
+                    {product.pricingTiers.map((tier, idx) => (
+                      <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', borderBottom: idx !== product.pricingTiers!.length - 1 ? '1px dashed #cbd5e1' : 'none', paddingBottom: idx !== product.pricingTiers!.length - 1 ? '0.5rem' : '0' }}>
+                        <span style={{ color: '#475569', fontSize: '0.875rem' }}>{tier.minQty}{tier.maxQty > tier.minQty ? ` - ${tier.maxQty}` : '+'} Units</span>
+                        <span style={{ fontWeight: 700, color: '#0f172a' }}>${tier.price.toLocaleString()} / unit</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+
+              <div className="product-cta-group" style={{ display: 'flex', marginBottom: '1.5rem', paddingBottom: 0, borderBottom: 'none' }}>
+                <button className="btn-get-quote" onClick={handleGetQuote} style={{ width: '100%' }}>
+                  GET ESTIMATE <i className="ri-arrow-right-line"></i>
+                </button>
+              </div>
+
+              {/* Compact WhatsApp Banner Section */}
+              <div style={{ backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '0.75rem', padding: '1.25rem', marginBottom: '2.5rem', textAlign: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+                  <i className="ri-whatsapp-fill" style={{ fontSize: '1.5rem', color: '#16a34a' }}></i>
+                  <div style={{ fontWeight: 700, color: '#0f172a', fontSize: '1rem' }}>
+                    Enquire via WhatsApp
+                  </div>
+                </div>
+
+                <div className="desktop-only" style={{ border: '1px solid #e2e8f0', borderRadius: '0.5rem', padding: '1rem', display: 'inline-block', marginBottom: '1rem', backgroundColor: '#f8fafc' }}>
+                  <img src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(`https://wa.me/?text=Hi, I'm interested in the ${product.title}. Please provide more details.\n\nProduct URL: https://msevizag.com/catalog/${product.id}`)}`} alt="WhatsApp QR Code" style={{ width: '120px', height: '120px', marginBottom: '0.5rem' }} />
+                  <div style={{ color: '#475569', fontSize: '0.75rem', fontWeight: 600 }}>Scan & Reach out</div>
+                </div>
+
+                <a 
+                  href={`https://wa.me/?text=${encodeURIComponent(`Hi, I'm interested in the ${product.title}. Please provide more details.\n\nProduct URL: ${typeof window !== 'undefined' ? window.location.href : 'https://msevizag.com/catalog/' + product.id}`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', fontSize: '0.875rem', backgroundColor: '#25D366', color: '#fff', padding: '0.75rem 1rem', borderRadius: '9999px', textDecoration: 'none', fontWeight: 600, transition: 'all 0.2s', boxSizing: 'border-box', marginBottom: '1.5rem' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#16a34a'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#25D366'; }}
+                >
+                  Send Message
+                </a>
+
+                <div style={{ textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: '#475569', fontSize: '1rem' }}>
+                    <i className="ri-flashlight-line" style={{ color: '#10b981', fontSize: '1.25rem' }}></i> Instant replies
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: '#475569', fontSize: '1rem' }}>
+                    <i className="ri-customer-service-2-line" style={{ color: '#10b981', fontSize: '1.25rem' }}></i> Direct contact with experts
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: '#475569', fontSize: '1rem' }}>
+                    <i className="ri-image-2-line" style={{ color: '#10b981', fontSize: '1.25rem' }}></i> Easy media sharing
+                  </div>
+                </div>
+              </div>
+
+
             </div>
 
           </div>
 
           {/* Bottom Section: Specifications Table */}
           <div className="product-bottom-section">
+            
+            {product.description && (
+              <div style={{ marginBottom: '2.5rem' }}>
+                <div className="specs-header">
+                  <span className="orange-bar"></span>
+                  <h2>PRODUCT DESCRIPTION</h2>
+                </div>
+                <div className="product-description-full" dangerouslySetInnerHTML={{ __html: product.description }}></div>
+              </div>
+            )}
+
+
             <div className="specs-header">
               <span className="orange-bar"></span>
               <h2>TECHNICAL SPECIFICATIONS</h2>
@@ -308,6 +407,76 @@ export default function ProductDetail() {
                 </div>
               ))}
             </div>
+
+            {faqs && faqs.length > 0 && (
+              <div style={{ marginTop: '2.5rem', backgroundColor: '#ffedd5', padding: '3rem 2rem', borderRadius: '1rem', color: '#2c1e16' }}>
+                <h2 style={{ fontSize: '2.5rem', textAlign: 'center', marginBottom: '2.5rem', color: '#2c1e16', fontWeight: 700 }}>Have questions?</h2>
+                
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  {faqs.map((faq, idx) => (
+                    <div key={idx} style={{ borderBottom: '1px solid #fff' }}>
+                      <button 
+                        onClick={() => setOpenFaqIndex(openFaqIndex === idx ? null : idx)}
+                        style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.25rem 0', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left', fontWeight: 600, color: '#2c1e16', fontSize: '1rem' }}
+                      >
+                        <span>{faq.question}</span>
+                        <i className={openFaqIndex === idx ? "ri-eye-line" : "ri-eye-close-line"} style={{ color: '#2c1e16', fontSize: '1.25rem' }}></i>
+                      </button>
+                      
+                      <div style={{ display: 'grid', gridTemplateRows: openFaqIndex === idx ? '1fr' : '0fr', transition: 'grid-template-rows 0.3s ease-in-out' }}>
+                        <div style={{ overflow: 'hidden' }}>
+                          <div style={{ padding: '0 0 1.5rem 0', color: '#333', fontSize: '0.875rem', lineHeight: 1.6 }}>
+                            {faq.answer}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div style={{ textAlign: 'center', marginTop: '3.5rem' }}>
+                  <p style={{ fontSize: '0.875rem', color: '#333', marginBottom: '1.5rem', maxWidth: '400px', margin: '0 auto 1.5rem auto', lineHeight: 1.6 }}>
+                    Have a question we haven't answered here? Our team is more than happy to answer any questions you may have regarding our products.
+                  </p>
+                  <Link href="/contact" style={{ display: 'inline-block', padding: '0.75rem 2rem', border: '1px solid #2c1e16', borderRadius: '9999px', textDecoration: 'none', color: '#2c1e16', fontWeight: 600, fontSize: '0.875rem', transition: 'all 0.2s' }} onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(0,0,0,0.05)'; }} onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}>
+                    Get in Touch
+                  </Link>
+                </div>
+              </div>
+            )}
+
+            {product.videoUrl && (
+              <div style={{ marginTop: '2.5rem' }}>
+                <div className="specs-header">
+                  <span className="orange-bar"></span>
+                  <h2>PRODUCT VIDEO</h2>
+                </div>
+                <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0, overflow: 'hidden', borderRadius: '0.5rem', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
+                  <iframe src={product.videoUrl.replace('watch?v=', 'embed/')} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 0 }} allowFullScreen></iframe>
+                </div>
+              </div>
+            )}
+
+            {product.testimonials && product.testimonials.length > 0 && product.testimonials[0].reviewText && (
+              <div style={{ marginTop: '2.5rem' }}>
+                <div className="specs-header">
+                  <span className="orange-bar"></span>
+                  <h2>CLIENT REVIEWS</h2>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
+                  {product.testimonials.map((test, idx) => (
+                    <div key={idx} style={{ background: '#f8fafc', padding: '1.5rem', borderRadius: '0.5rem', border: '1px solid #e2e8f0' }}>
+                      <div style={{ display: 'flex', gap: '0.25rem', color: '#f59e0b', marginBottom: '0.75rem' }}>
+                        {Array.from({ length: test.rating }).map((_, i) => <i key={i} className="ri-star-fill"></i>)}
+                      </div>
+                      <p style={{ fontStyle: 'italic', color: '#475569', marginBottom: '1rem', lineHeight: 1.6 }}>"{test.reviewText}"</p>
+                      <div style={{ fontWeight: 600, color: '#0f172a' }}>{test.clientName}</div>
+                      {test.isVerified && <div style={{ fontSize: '0.75rem', color: '#10b981', display: 'flex', alignItems: 'center', gap: '0.25rem', marginTop: '0.25rem' }}><i className="ri-checkbox-circle-fill"></i> Verified Buyer</div>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {product.originalUrl && (
               <div className="view-original-container">

@@ -29,6 +29,7 @@ export default function AdminDashboard({ initialCatalog, initialQuotes, initialS
   const [newProduct, setNewProduct] = useState({
     title: '',
     category: 'MINI CRANES',
+    brand: '',
     description: '',
     image: '',
     thumbnails: [] as string[],
@@ -47,6 +48,43 @@ export default function AdminDashboard({ initialCatalog, initialQuotes, initialS
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDraftLoaded, setIsDraftLoaded] = useState(false);
   const [activePreviewTab, setActivePreviewTab] = useState('specs');
+  
+  const [brandsList, setBrandsList] = useState<string[]>([]);
+  const [newBrandInput, setNewBrandInput] = useState('');
+  const [showNewBrandInput, setShowNewBrandInput] = useState(false);
+
+  useEffect(() => {
+    fetch('/api/variables')
+      .then(res => res.json())
+      .then(data => {
+        if (data.brands) {
+          setBrandsList(data.brands);
+        }
+      })
+      .catch(console.error);
+  }, []);
+
+  const handleAddNewBrand = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!newBrandInput.trim()) return;
+    
+    try {
+      const res = await fetch('/api/variables', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ brand: newBrandInput.trim() })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setBrandsList(data.variables.brands);
+        setNewProduct(prev => ({ ...prev, brand: newBrandInput.trim() }));
+        setShowNewBrandInput(false);
+        setNewBrandInput('');
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   // Auto-save draft
   useEffect(() => {
@@ -172,7 +210,16 @@ export default function AdminDashboard({ initialCatalog, initialQuotes, initialS
     
     try {
       const productId = crypto.randomUUID();
-      const finalImage = await uploadBase64ToR2(newProduct.thumbnails?.[0] || newProduct.image, productId, 'image.jpg');
+      
+      // Upload all thumbnails to R2
+      const imagesToUpload = newProduct.thumbnails?.length > 0 ? newProduct.thumbnails : (newProduct.image ? [newProduct.image] : []);
+      const uploadedThumbnails = await Promise.all(
+        imagesToUpload.map(async (imgBase64, index) => {
+          return await uploadBase64ToR2(imgBase64, productId, `image_${index}.jpg`);
+        })
+      );
+      
+      const finalImage = uploadedThumbnails[0] || '';
       
       const payload = {
         ...newProduct,
@@ -182,7 +229,7 @@ export default function AdminDashboard({ initialCatalog, initialQuotes, initialS
         image: finalImage,
         specs: newProduct.specs.filter(s => s.label && s.value), // Remove empty specs
         features: [{ title: "NEW PRODUCT", desc: "Added from Admin Panel", icon: "ri-star-line" }], // Default placeholder
-        thumbnails: newProduct.thumbnails?.length > 0 ? newProduct.thumbnails : [newProduct.image],
+        thumbnails: uploadedThumbnails,
         extendedSpecs: newProduct.specs.filter(s => s.label && s.value)
       };
 
@@ -196,7 +243,7 @@ export default function AdminDashboard({ initialCatalog, initialQuotes, initialS
       if (data.success) {
         setCatalog([...catalog, data.product]);
         setNewProduct({ 
-          title: '', category: 'MINI CRANES', description: '', image: '', thumbnails: [] as string[], specs: [{ label: '', value: '' }], tag: '', videoUrl: '',
+          title: '', category: 'MINI CRANES', brand: '', description: '', image: '', thumbnails: [] as string[], specs: [{ label: '', value: '' }], tag: '', videoUrl: '',
           documents: [{ label: '', url: '' }], badges: [] as string[], moq: 1 as number | string, stockStatus: 'In Stock - Ships in 48hrs', 
           pricingTiers: [{ minQty: 1, maxQty: 10, price: 0 }], hideExactPrices: false, 
           testimonials: [{ clientName: '', reviewText: '', rating: 5, isVerified: false }], 
@@ -217,7 +264,7 @@ export default function AdminDashboard({ initialCatalog, initialQuotes, initialS
   const handleCancel = () => {
     if (confirm('Are you sure you want to cancel? All unsaved changes will be lost.')) {
       setNewProduct({ 
-        title: '', category: 'MINI CRANES', description: '', image: '', thumbnails: [] as string[], specs: [{ label: '', value: '' }], tag: '', videoUrl: '',
+        title: '', category: 'MINI CRANES', brand: '', description: '', image: '', thumbnails: [] as string[], specs: [{ label: '', value: '' }], tag: '', videoUrl: '',
         documents: [{ label: '', url: '' }], badges: [] as string[], moq: 1 as number | string, stockStatus: 'In Stock - Ships in 48hrs', 
         pricingTiers: [{ minQty: 1, maxQty: 10, price: 0 }], hideExactPrices: false, 
         testimonials: [{ clientName: '', reviewText: '', rating: 5, isVerified: false }], 
@@ -232,7 +279,15 @@ export default function AdminDashboard({ initialCatalog, initialQuotes, initialS
     setIsSubmitting(true);
     try {
       const productId = crypto.randomUUID();
-      const finalImage = await uploadBase64ToR2(newProduct.thumbnails?.[0] || newProduct.image, productId, 'image.jpg');
+      
+      const imagesToUpload = newProduct.thumbnails?.length > 0 ? newProduct.thumbnails : (newProduct.image ? [newProduct.image] : []);
+      const uploadedThumbnails = await Promise.all(
+        imagesToUpload.map(async (imgBase64, index) => {
+          return await uploadBase64ToR2(imgBase64, productId, `image_${index}.jpg`);
+        })
+      );
+      
+      const finalImage = uploadedThumbnails[0] || '';
 
       const payload = {
         ...newProduct,
@@ -242,7 +297,7 @@ export default function AdminDashboard({ initialCatalog, initialQuotes, initialS
         image: finalImage,
         specs: newProduct.specs.filter(s => s.label && s.value),
         features: [{ title: "NEW PRODUCT", desc: "Added from Admin Panel", icon: "ri-star-line" }],
-        thumbnails: newProduct.thumbnails?.length > 0 ? newProduct.thumbnails : [newProduct.image],
+        thumbnails: uploadedThumbnails,
         extendedSpecs: newProduct.specs.filter(s => s.label && s.value)
       };
 
@@ -297,11 +352,11 @@ export default function AdminDashboard({ initialCatalog, initialQuotes, initialS
     <div className="admin-container">
       {/* Sidebar */}
       <aside className={`admin-sidebar ${isSidebarCollapsed ? 'collapsed' : ''}`}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 24px 24px', borderBottom: '1px solid #334155', marginBottom: '24px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 24px 24px', borderBottom: '1px solid #334155', marginBottom: '1.5rem' }}>
           {!isSidebarCollapsed && <h2 style={{ padding: 0, border: 'none', margin: 0 }}>MS Admin</h2>}
           <button 
             onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-            style={{ background: 'transparent', border: 'none', color: '#cbd5e1', cursor: 'pointer', fontSize: '20px', padding: 0, margin: isSidebarCollapsed ? '0 auto' : 0 }}
+            style={{ background: 'transparent', border: 'none', color: '#cbd5e1', cursor: 'pointer', fontSize: '1.25rem', padding: 0, margin: isSidebarCollapsed ? '0 auto' : 0 }}
           >
             <i className={isSidebarCollapsed ? 'ri-menu-unfold-line' : 'ri-menu-fold-line'}></i>
           </button>
@@ -338,13 +393,13 @@ export default function AdminDashboard({ initialCatalog, initialQuotes, initialS
               </div>
               <div>
                 <div style={{ position: 'relative' }}>
-                  <i className="ri-search-line" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }}></i>
+                  <i className="ri-search-line" style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }}></i>
                   <input 
                     type="text" 
                     placeholder="Search catalog..." 
                     value={catalogSearch}
                     onChange={(e) => setCatalogSearch(e.target.value)}
-                    style={{ padding: '10px 12px 10px 36px', borderRadius: '6px', border: '1px solid #cbd5e1', width: '250px', fontSize: '14px' }}
+                    style={{ padding: '10px 12px 10px 36px', borderRadius: '0.375rem', border: '1px solid #cbd5e1', width: '15.625rem', fontSize: '0.875rem' }}
                   />
                 </div>
               </div>
@@ -364,22 +419,22 @@ export default function AdminDashboard({ initialCatalog, initialQuotes, initialS
                   {filteredCatalog.map((p: any) => (
                     <tr key={p.id}>
                       <td>#{p.id}</td>
-                      <td><img src={p.image} alt={p.title} style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '4px' }} /></td>
+                      <td><img src={p.image} alt={p.title} style={{ width: '2.5rem', height: '2.5rem', objectFit: 'cover', borderRadius: '0.25rem' }} /></td>
                       <td style={{ fontWeight: 600 }}>{p.title}</td>
                       <td><span className="admin-badge">{p.category}</span></td>
                       <td>
-                        <div style={{ display: 'flex', gap: '8px' }}>
+                        <div style={{ display: 'flex', gap: '0.5rem' }}>
                           <Link 
                             href={`/catalog/${p.id}`}
                             target="_blank"
-                            style={{ background: 'transparent', border: 'none', color: '#3b82f6', cursor: 'pointer', fontSize: '18px', padding: '4px', display: 'flex', alignItems: 'center' }}
+                            style={{ background: 'transparent', border: 'none', color: '#3b82f6', cursor: 'pointer', fontSize: '1.125rem', padding: '0.25rem', display: 'flex', alignItems: 'center' }}
                             title="View Product on Website"
                           >
                             <i className="ri-eye-line"></i>
                           </Link>
                           <button 
                             onClick={() => handleDeleteProduct(p.id)}
-                            style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '18px', padding: '4px' }}
+                            style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '1.125rem', padding: '0.25rem' }}
                             title="Delete Product"
                           >
                             <i className="ri-delete-bin-line"></i>
@@ -390,7 +445,7 @@ export default function AdminDashboard({ initialCatalog, initialQuotes, initialS
                   ))}
                   {filteredCatalog.length === 0 && (
                     <tr>
-                      <td colSpan={5} style={{ textAlign: 'center', padding: '40px' }}>No products found.</td>
+                      <td colSpan={5} style={{ textAlign: 'center', padding: '2.5rem' }}>No products found.</td>
                     </tr>
                   )}
                 </tbody>
@@ -427,8 +482,42 @@ export default function AdminDashboard({ initialCatalog, initialQuotes, initialS
                       </select>
                     </div>
                     <div className="admin-form-group">
+                      <label htmlFor="brand">Brand</label>
+                      <select 
+                        id="brand" 
+                        value={newProduct.brand} 
+                        onChange={e => {
+                          if (e.target.value === 'add_new') {
+                            setShowNewBrandInput(true);
+                          } else {
+                            setShowNewBrandInput(false);
+                            setNewProduct({...newProduct, brand: e.target.value});
+                          }
+                        }}
+                      >
+                        <option value="">Select Brand</option>
+                        {brandsList.map((brand, i) => (
+                          <option key={i} value={brand}>{brand}</option>
+                        ))}
+                        <option value="add_new">+ Add Brand</option>
+                      </select>
+                      {showNewBrandInput && (
+                        <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+                          <input 
+                            type="text" 
+                            value={newBrandInput}
+                            onChange={(e) => setNewBrandInput(e.target.value)}
+                            placeholder="Enter new brand name" 
+                            style={{ flex: 1, padding: '10px 12px', borderRadius: '0.375rem', border: '1px solid #cbd5e1' }}
+                          />
+                          <button onClick={handleAddNewBrand} type="button" className="admin-btn admin-btn-primary" style={{ padding: '8px 16px' }}>Add</button>
+                          <button onClick={() => setShowNewBrandInput(false)} type="button" className="admin-btn admin-btn-secondary" style={{ padding: '8px 16px', background: '#f1f5f9', color: '#475569', border: 'none' }}>Cancel</button>
+                        </div>
+                      )}
+                    </div>
+                    <div className="admin-form-group">
                       <label htmlFor="image">Product Images (Up to 12)</label>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                         <input 
                           id="image"
                           type="file" 
@@ -450,13 +539,13 @@ export default function AdminDashboard({ initialCatalog, initialQuotes, initialS
                               setNewProduct({...newProduct, thumbnails: combinedImages, image: combinedImages[0]});
                             }
                           }}
-                          style={{ padding: '10px', border: '1px dashed #cbd5e1', borderRadius: '6px', background: '#f8fafc', cursor: 'pointer', fontSize: '13px' }}
+                          style={{ padding: '0.625rem', border: '1px dashed #cbd5e1', borderRadius: '0.375rem', background: '#f8fafc', cursor: 'pointer', fontSize: '0.8125rem' }}
                         />
                         {newProduct.thumbnails && newProduct.thumbnails.length > 0 && (
-                          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                             {newProduct.thumbnails.map((img, i) => (
                               <div key={i} className="admin-image-preview-wrapper" style={{ position: 'relative' }}>
-                                <img src={img} alt={`Preview ${i}`} style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '4px', border: '1px solid #e2e8f0' }} />
+                                <img src={img} alt={`Preview ${i}`} style={{ width: '3.75rem', height: '3.75rem', objectFit: 'cover', borderRadius: '0.25rem', border: '1px solid #e2e8f0' }} />
                                 <button 
                                   type="button"
                                   className="admin-image-delete-btn"
@@ -488,9 +577,9 @@ export default function AdminDashboard({ initialCatalog, initialQuotes, initialS
                     <summary><i className="ri-list-settings-line"></i> Technical Specs & Video <i className="ri-arrow-down-s-line" style={{ marginLeft: 'auto' }}></i></summary>
                     <div className="admin-form-group">
                       <label>Product Specifications</label>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                         {newProduct.specs.map((spec, index) => (
-                          <div key={index} style={{ display: 'flex', gap: '8px' }}>
+                          <div key={index} style={{ display: 'flex', gap: '0.5rem' }}>
                             <input type="text" value={spec.label} onChange={(e) => {
                               const newSpecs = [...newProduct.specs];
                               newSpecs[index].label = e.target.value;
@@ -506,12 +595,12 @@ export default function AdminDashboard({ initialCatalog, initialQuotes, initialS
                                 const newSpecs = newProduct.specs.filter((_, i) => i !== index);
                                 setNewProduct({...newProduct, specs: newSpecs});
                               }
-                            }} style={{ padding: '8px', background: '#fee2e2', color: '#ef4444', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+                            }} style={{ padding: '0.5rem', background: '#fee2e2', color: '#ef4444', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>
                               <i className="ri-delete-bin-line"></i>
                             </button>
                           </div>
                         ))}
-                        <button type="button" onClick={() => setNewProduct({...newProduct, specs: [...newProduct.specs, { label: '', value: '' }]})} style={{ alignSelf: 'flex-start', padding: '8px 16px', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '4px', cursor: 'pointer', fontSize: '13px', color: '#475569' }}>
+                        <button type="button" onClick={() => setNewProduct({...newProduct, specs: [...newProduct.specs, { label: '', value: '' }]})} style={{ alignSelf: 'flex-start', padding: '8px 16px', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '0.25rem', cursor: 'pointer', fontSize: '0.8125rem', color: '#475569' }}>
                           + Add Specification
                         </button>
                       </div>
@@ -555,7 +644,7 @@ export default function AdminDashboard({ initialCatalog, initialQuotes, initialS
 
                   <details className="admin-fieldset">
                     <summary><i className="ri-money-dollar-box-line"></i> Inventory & Bulk Pricing <i className="ri-arrow-down-s-line" style={{ marginLeft: 'auto' }}></i></summary>
-                    <div style={{ display: 'flex', gap: '16px' }}>
+                    <div style={{ display: 'flex', gap: '1rem' }}>
                       <div className="admin-form-group" style={{ flex: 1 }}>
                         <label htmlFor="moq">Minimum Order Qty (MOQ)</label>
                         <input id="moq" type="number" min="1" value={newProduct.moq} onChange={e => setNewProduct({...newProduct, moq: e.target.value === '' ? '' : parseInt(e.target.value) || ''})} />
@@ -572,20 +661,20 @@ export default function AdminDashboard({ initialCatalog, initialQuotes, initialS
                     
                     <div className="admin-form-group">
                       <label>Tiered Pricing</label>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                         {newProduct.pricingTiers.map((tier, index) => (
-                          <div key={index} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                          <div key={index} style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                             <input type="number" value={tier.minQty} onChange={(e) => {
                               const newTiers = [...newProduct.pricingTiers];
                               newTiers[index].minQty = parseInt(e.target.value) || 0;
                               setNewProduct({...newProduct, pricingTiers: newTiers});
-                            }} placeholder="Min Qty" style={{ width: '80px' }} />
+                            }} placeholder="Min Qty" style={{ width: '5rem' }} />
                             <span>to</span>
                             <input type="number" value={tier.maxQty} onChange={(e) => {
                               const newTiers = [...newProduct.pricingTiers];
                               newTiers[index].maxQty = parseInt(e.target.value) || 0;
                               setNewProduct({...newProduct, pricingTiers: newTiers});
-                            }} placeholder="Max Qty" style={{ width: '80px' }} />
+                            }} placeholder="Max Qty" style={{ width: '5rem' }} />
                             <span>→ $</span>
                             <input type="number" value={tier.price} onChange={(e) => {
                               const newTiers = [...newProduct.pricingTiers];
@@ -595,33 +684,33 @@ export default function AdminDashboard({ initialCatalog, initialQuotes, initialS
                             <button type="button" onClick={() => {
                               const newTiers = newProduct.pricingTiers.filter((_, i) => i !== index);
                               setNewProduct({...newProduct, pricingTiers: newTiers});
-                            }} style={{ padding: '8px', background: '#fee2e2', color: '#ef4444', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+                            }} style={{ padding: '0.5rem', background: '#fee2e2', color: '#ef4444', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>
                               <i className="ri-delete-bin-line"></i>
                             </button>
                           </div>
                         ))}
-                        <button type="button" onClick={() => setNewProduct({...newProduct, pricingTiers: [...newProduct.pricingTiers, { minQty: 0, maxQty: 0, price: 0 }]})} style={{ alignSelf: 'flex-start', padding: '8px 16px', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '4px', cursor: 'pointer', fontSize: '13px', color: '#475569' }}>
+                        <button type="button" onClick={() => setNewProduct({...newProduct, pricingTiers: [...newProduct.pricingTiers, { minQty: 0, maxQty: 0, price: 0 }]})} style={{ alignSelf: 'flex-start', padding: '8px 16px', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '0.25rem', cursor: 'pointer', fontSize: '0.8125rem', color: '#475569' }}>
                           + Add Pricing Tier
                         </button>
                       </div>
                     </div>
 
-                    <div className="admin-form-group" style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '16px' }}>
+                    <div className="admin-form-group" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginTop: '1rem' }}>
                       <label className="toggle-switch">
                         <input type="checkbox" checked={newProduct.hideExactPrices} onChange={e => setNewProduct({...newProduct, hideExactPrices: e.target.checked})} />
                         <span className="toggle-slider"></span>
                       </label>
-                      <span style={{ fontSize: '14px', color: '#334155', fontWeight: 500 }}>Hide exact prices on public page (Show "Request Tiered Quote")</span>
+                      <span style={{ fontSize: '0.875rem', color: '#334155', fontWeight: 500 }}>Hide exact prices on public page (Show "Request Tiered Quote")</span>
                     </div>
                   </details>
 
                   <details className="admin-fieldset">
                     <summary><i className="ri-message-2-line"></i> Client Testimonials & Projects <i className="ri-arrow-down-s-line" style={{ marginLeft: 'auto' }}></i></summary>
                     <div className="admin-form-group">
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                         {newProduct.testimonials.map((test, index) => (
-                          <div key={index} style={{ border: '1px solid #e2e8f0', padding: '16px', borderRadius: '8px', background: '#fff', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                            <div style={{ display: 'flex', gap: '12px' }}>
+                          <div key={index} style={{ border: '1px solid #e2e8f0', padding: '1rem', borderRadius: '0.5rem', background: '#fff', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                            <div style={{ display: 'flex', gap: '0.75rem' }}>
                               <input type="text" value={test.clientName} onChange={(e) => {
                                 const newTests = [...newProduct.testimonials];
                                 newTests[index].clientName = e.target.value;
@@ -631,7 +720,7 @@ export default function AdminDashboard({ initialCatalog, initialQuotes, initialS
                                 const newTests = [...newProduct.testimonials];
                                 newTests[index].rating = parseInt(e.target.value) || 5;
                                 setNewProduct({...newProduct, testimonials: newTests});
-                              }} placeholder="Rating (1-5)" style={{ width: '100px' }} />
+                              }} placeholder="Rating (1-5)" style={{ width: '6.25rem' }} />
                             </div>
                             <textarea rows={2} value={test.reviewText} onChange={(e) => {
                               const newTests = [...newProduct.testimonials];
@@ -640,22 +729,22 @@ export default function AdminDashboard({ initialCatalog, initialQuotes, initialS
                             }} placeholder="Quote / Review Text"></textarea>
                             
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                 <input type="checkbox" id={`verified-${index}`} checked={test.isVerified} style={{ width: 'auto' }} onChange={(e) => {
                                   const newTests = [...newProduct.testimonials];
                                   newTests[index].isVerified = e.target.checked;
                                   setNewProduct({...newProduct, testimonials: newTests});
                                 }} />
-                                <label htmlFor={`verified-${index}`} style={{ margin: 0, fontSize: '13px', fontWeight: 500, whiteSpace: 'nowrap', display: 'inline' }}>Verified Site Buyer</label>
+                                <label htmlFor={`verified-${index}`} style={{ margin: 0, fontSize: '0.8125rem', fontWeight: 500, whiteSpace: 'nowrap', display: 'inline' }}>Verified Site Buyer</label>
                               </div>
                               <button type="button" onClick={() => {
                                 const newTests = newProduct.testimonials.filter((_, i) => i !== index);
                                 setNewProduct({...newProduct, testimonials: newTests});
-                              }} style={{ color: '#ef4444', border: 'none', background: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}>Remove</button>
+                              }} style={{ color: '#ef4444', border: 'none', background: 'none', cursor: 'pointer', fontSize: '0.8125rem', fontWeight: 600 }}>Remove</button>
                             </div>
                           </div>
                         ))}
-                        <button type="button" onClick={() => setNewProduct({...newProduct, testimonials: [...newProduct.testimonials, { clientName: '', reviewText: '', rating: 5, isVerified: false }]})} style={{ alignSelf: 'flex-start', padding: '8px 16px', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '4px', cursor: 'pointer', fontSize: '13px', color: '#475569' }}>
+                        <button type="button" onClick={() => setNewProduct({...newProduct, testimonials: [...newProduct.testimonials, { clientName: '', reviewText: '', rating: 5, isVerified: false }]})} style={{ alignSelf: 'flex-start', padding: '8px 16px', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '0.25rem', cursor: 'pointer', fontSize: '0.8125rem', color: '#475569' }}>
                           + Add Testimonial
                         </button>
                       </div>
@@ -663,16 +752,16 @@ export default function AdminDashboard({ initialCatalog, initialQuotes, initialS
                   </details>
 
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '24px' }}>
-                    <div style={{ display: 'flex', gap: '12px' }}>
-                      <button type="button" onClick={handleCancel} disabled={isSubmitting} style={{ flex: 1, padding: '16px', fontSize: '16px', background: '#ef4444', border: '1px solid #dc2626', color: '#ffffff', borderRadius: '4px', cursor: 'pointer', fontWeight: 600, transition: 'all 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#dc2626'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#ef4444'}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '1.5rem' }}>
+                    <div style={{ display: 'flex', gap: '0.75rem' }}>
+                      <button type="button" onClick={handleCancel} disabled={isSubmitting} style={{ flex: 1, padding: '1rem', fontSize: '1rem', background: '#ef4444', border: '1px solid #dc2626', color: '#ffffff', borderRadius: '0.25rem', cursor: 'pointer', fontWeight: 600, transition: 'all 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#dc2626'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#ef4444'}>
                         Cancel
                       </button>
-                      <button type="submit" className="admin-btn-primary" disabled={isSubmitting} style={{ flex: 1, padding: '16px', fontSize: '16px', borderRadius: '4px' }}>
+                      <button type="submit" className="admin-btn-primary" disabled={isSubmitting} style={{ flex: 1, padding: '1rem', fontSize: '1rem', borderRadius: '0.25rem' }}>
                         {isSubmitting ? 'Publishing...' : 'Publish'}
                       </button>
                     </div>
-                    <button type="button" onClick={handleSaveDraft} disabled={isSubmitting} style={{ width: '100%', padding: '16px', fontSize: '16px', background: '#3b82f6', border: '1px solid #2563eb', color: '#ffffff', borderRadius: '4px', cursor: 'pointer', fontWeight: 600, transition: 'all 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#2563eb'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#3b82f6'}>
+                    <button type="button" onClick={handleSaveDraft} disabled={isSubmitting} style={{ width: '100%', padding: '1rem', fontSize: '1rem', background: '#3b82f6', border: '1px solid #2563eb', color: '#ffffff', borderRadius: '0.25rem', cursor: 'pointer', fontWeight: 600, transition: 'all 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#2563eb'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#3b82f6'}>
                       Save as Draft
                     </button>
                   </div>
@@ -711,17 +800,17 @@ export default function AdminDashboard({ initialCatalog, initialQuotes, initialS
                       <td>{new Date(q.timestamp).toLocaleDateString()}</td>
                       <td style={{ fontWeight: 600 }}>{q.name}</td>
                       <td>
-                        <div style={{ fontSize: '13px' }}>{q.email}</div>
-                        <div style={{ fontSize: '13px', color: '#64748b' }}>{q.phone}</div>
+                        <div style={{ fontSize: '0.8125rem' }}>{q.email}</div>
+                        <div style={{ fontSize: '0.8125rem', color: '#64748b' }}>{q.phone}</div>
                       </td>
                       <td><span className="admin-badge">{q.context}</span></td>
                       <td>{q.quantity || '-'}</td>
-                      <td style={{ fontSize: '12px', color: '#94a3b8' }}>#{q.id}</td>
+                      <td style={{ fontSize: '0.75rem', color: '#94a3b8' }}>#{q.id}</td>
                     </tr>
                   ))}
                   {initialQuotes.length === 0 && (
                     <tr>
-                      <td colSpan={6} style={{ textAlign: 'center', padding: '40px' }}>No quote requests yet.</td>
+                      <td colSpan={6} style={{ textAlign: 'center', padding: '2.5rem' }}>No quote requests yet.</td>
                     </tr>
                   )}
                 </tbody>
@@ -737,7 +826,7 @@ export default function AdminDashboard({ initialCatalog, initialQuotes, initialS
               <p>Discover exactly what your customers are looking for.</p>
             </div>
 
-            <div className="analytics-grid" style={{ marginBottom: '32px' }}>
+            <div className="analytics-grid" style={{ marginBottom: '2rem' }}>
               <div className="analytics-card">
                 <span className="analytics-card-title">Total Searches</span>
                 <span className="analytics-card-value">{initialSearchLogs.length}</span>
@@ -748,9 +837,9 @@ export default function AdminDashboard({ initialCatalog, initialQuotes, initialS
               </div>
             </div>
 
-            <div className="admin-card admin-table-container" style={{ maxWidth: '600px' }}>
+            <div className="admin-card admin-table-container" style={{ maxWidth: '37.5rem' }}>
               <h3>Top Searched Words</h3>
-              <table className="admin-table" style={{ marginTop: '16px' }}>
+              <table className="admin-table" style={{ marginTop: '1rem' }}>
                 <thead>
                   <tr>
                     <th>Rank</th>
@@ -768,7 +857,7 @@ export default function AdminDashboard({ initialCatalog, initialQuotes, initialS
                   ))}
                   {topSearches.length === 0 && (
                     <tr>
-                      <td colSpan={3} style={{ textAlign: 'center', padding: '40px' }}>No searches recorded yet.</td>
+                      <td colSpan={3} style={{ textAlign: 'center', padding: '2.5rem' }}>No searches recorded yet.</td>
                     </tr>
                   )}
                 </tbody>

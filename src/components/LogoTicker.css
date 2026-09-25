@@ -1,6 +1,6 @@
 .logo-ticker-container {
   width: 100%;
-  padding: 40px 0;
+  padding: 2.5rem 0;
   background-color: transparent;
   overflow: hidden;
   display: flex;
@@ -11,11 +11,11 @@
 }
 
 .logo-ticker-title {
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--text-muted);
   font-weight: 700;
   letter-spacing: 2px;
-  margin-bottom: 30px;
+  margin-bottom: 1.875rem;
   text-transform: uppercase;
 }
 
@@ -37,13 +37,13 @@
 .logo-ticker-item {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 0.75rem;
   color: var(--text-main);
   opacity: 0.6;
   transition: opacity 0.3s ease, transform 0.3s ease;
   filter: grayscale(100%) contrast(1.2);
   flex: 0 0 auto;
-  margin: 0 40px;
+  margin: 0 2.5rem;
 }
 
 .logo-ticker-item:hover {
@@ -53,8 +53,8 @@
 }
 
 .logo-icon {
-  width: 32px;
-  height: 32px;
+  width: 2rem;
+  height: 2rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -66,9 +66,9 @@
 }
 
 .logo-text {
-  font-size: 22px;
+  font-size: 1.375rem;
   font-weight: 700;
-  letter-spacing: -0.5px;
+  letter-spacing: -0.03125rem;
 }
 
 @keyframes ticker {

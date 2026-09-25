@@ -9,17 +9,17 @@
   align-items: center;
   justify-content: center;
   z-index: 10000;
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(0.25rem);
 }
 
 .quote-modal-content {
   background: #fff;
-  width: 500px;
+  width: 31.25rem;
   max-width: 90%;
-  border-radius: 12px;
-  padding: 40px;
+  border-radius: 0.75rem;
+  padding: 2.5rem;
   position: relative;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+  box-shadow: 0 1.25rem 2.5rem rgba(0,0,0,0.3);
   animation: scaleUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   max-height: 90vh;
   overflow-y: auto;
@@ -27,11 +27,11 @@
 
 .quote-close-btn {
   position: absolute;
-  top: 20px;
-  right: 20px;
+  top: 1.25rem;
+  right: 1.25rem;
   background: none;
   border: none;
-  font-size: 28px;
+  font-size: 1.75rem;
   cursor: pointer;
   color: #999;
   transition: color 0.2s;
@@ -41,37 +41,37 @@
 }
 
 .quote-header {
-  margin-bottom: 30px;
+  margin-bottom: 1.875rem;
 }
 .quote-header h2 {
-  font-size: 28px;
+  font-size: 1.75rem;
   color: #111;
-  margin-bottom: 8px;
+  margin-bottom: 0.5rem;
 }
 .orange-underline {
-  height: 4px;
-  width: 40px;
+  height: 0.25rem;
+  width: 2.5rem;
   background-color: var(--accent-orange);
-  margin-bottom: 12px;
+  margin-bottom: 0.75rem;
 }
 .quote-context {
-  font-size: 14px;
+  font-size: 0.875rem;
   color: #666;
   background: #f5f5f5;
-  padding: 8px 12px;
-  border-radius: 4px;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.25rem;
   border-left: 3px solid var(--accent-orange);
 }
 
 .quote-form {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 1.25rem;
 }
 
 .form-row {
   display: flex;
-  gap: 16px;
+  gap: 1rem;
 }
 .form-row .form-group {
   flex: 1;
@@ -80,18 +80,18 @@
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 0.375rem;
 }
 .form-group label {
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: #444;
 }
 .form-group input, .form-group textarea {
-  padding: 12px;
+  padding: 0.75rem;
   border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 14px;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
   font-family: inherit;
   transition: border-color 0.2s;
 }
@@ -104,14 +104,14 @@
   background-color: var(--accent-orange);
   color: white;
   border: none;
-  padding: 16px;
-  border-radius: 6px;
+  padding: 1rem;
+  border-radius: 0.375rem;
   font-weight: 700;
-  font-size: 15px;
-  letter-spacing: 0.5px;
+  font-size: 0.9375rem;
+  letter-spacing: 0.03125rem;
   cursor: pointer;
   transition: background-color 0.2s;
-  margin-top: 10px;
+  margin-top: 0.625rem;
 }
 .btn-submit-quote:hover:not(:disabled) {
   background-color: #d15600;
@@ -123,23 +123,23 @@
 
 .error-msg {
   color: #e74c3c;
-  font-size: 13px;
+  font-size: 0.8125rem;
   margin: 0;
 }
 
 .quote-success {
   text-align: center;
-  padding: 40px 0;
+  padding: 2.5rem 0;
 }
 .quote-success > i.ri-checkbox-circle-fill {
-  font-size: 64px;
+  font-size: 4rem;
   color: #27ae60;
-  margin-bottom: 16px;
+  margin-bottom: 1rem;
   display: inline-block;
 }
 .quote-success h3 {
-  font-size: 24px;
-  margin-bottom: 8px;
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
   color: #111;
 }
 .quote-success p {
@@ -152,25 +152,25 @@
   align-items: center;
   justify-content: center;
   background: white;
-  padding: 8px;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 0.5rem rgba(0,0,0,0.05);
 }
 .wa-qr-container p {
-  font-size: 11px;
+  font-size: 0.6875rem;
   color: #666;
-  margin-top: 6px;
+  margin-top: 0.375rem;
   font-weight: 600;
   text-transform: uppercase;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 37.5rem) {
   .form-row {
     flex-direction: column;
-    gap: 20px;
+    gap: 1.25rem;
   }
   .quote-modal-content {
-    padding: 30px 20px;
+    padding: 1.875rem 1.25rem;
   }
   .wa-fallback-box {
     flex-direction: column !important;

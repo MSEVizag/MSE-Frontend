@@ -32,6 +32,7 @@ export interface Product {
   id: string;
   title: string;
   category: string;
+  brand?: string;
   image: string;
   thumbnails?: string[];
   description: string;
