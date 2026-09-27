@@ -6,6 +6,19 @@ import { usePathname, useRouter } from 'next/navigation';
 import { Product } from '../types';
 import ProductPreviewCanvas from './ProductPreviewCanvas';
 import '../app/catalog/catalog.css';
+import { z } from 'zod';
+
+const testimonialSchema = z.object({
+  customerName: z.string().min(1, "Customer name is required").max(150),
+  businessName: z.string().max(200).optional(),
+  email: z.string().email("Invalid email").optional().or(z.literal('')),
+  buyerType: z.enum(['site_buyer', 'store_buyer', 'unverified']).default('site_buyer'),
+  isVerifiedPurchase: z.boolean().default(true),
+  rating: z.number().min(1).max(5),
+  title: z.string().max(255).optional(),
+  description: z.string().min(1, "Description is required"),
+  imageFilenames: z.array(z.string()).default([])
+});
 
 interface AdminDashboardProps {
   initialCatalog: Product[];
@@ -41,24 +54,35 @@ export default function AdminDashboard({ initialCatalog, initialQuotes, initialS
     stockStatus: 'In Stock - Ships in 48hrs',
     pricingTiers: [{ minQty: 1, maxQty: 10, price: 0 }],
     hideExactPrices: false,
-    testimonials: [{ clientName: '', reviewText: '', rating: 5, isVerified: false }],
+    testimonials: [{ customerName: '', businessName: '', email: '', buyerType: 'site_buyer', isVerifiedPurchase: true, rating: 5, title: '', description: '', imageFilenames: [] as string[] }],
     documents: [{ label: '', url: '' }],
     contactConfig: { phone: '', enableRfqModal: true }
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDraftLoaded, setIsDraftLoaded] = useState(false);
   const [activePreviewTab, setActivePreviewTab] = useState('specs');
+  const [testimonialErrors, setTestimonialErrors] = useState<{ [index: number]: any }>({});
+  
+  const [showCloseModal, setShowCloseModal] = useState(false);
+  const [showConfirmCancelModal, setShowConfirmCancelModal] = useState(false);
   
   const [brandsList, setBrandsList] = useState<string[]>([]);
   const [newBrandInput, setNewBrandInput] = useState('');
   const [showNewBrandInput, setShowNewBrandInput] = useState(false);
 
+  const [categoriesList, setCategoriesList] = useState<string[]>([]);
+  const [newCategoryInput, setNewCategoryInput] = useState('');
+  const [showNewCategoryInput, setShowNewCategoryInput] = useState(false);
+
   useEffect(() => {
     fetch('/api/variables')
       .then(res => res.json())
       .then(data => {
-        if (data.brands) {
-          setBrandsList(data.brands);
+        if (data.variables?.brands) {
+          setBrandsList(data.variables.brands);
+        }
+        if (data.variables?.categories) {
+          setCategoriesList(data.variables.categories);
         }
       })
       .catch(console.error);
@@ -72,7 +96,7 @@ export default function AdminDashboard({ initialCatalog, initialQuotes, initialS
       const res = await fetch('/api/variables', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ brand: newBrandInput.trim() })
+        body: JSON.stringify({ type: 'brand', value: newBrandInput.trim() })
       });
       const data = await res.json();
       if (data.success) {
@@ -80,6 +104,51 @@ export default function AdminDashboard({ initialCatalog, initialQuotes, initialS
         setNewProduct(prev => ({ ...prev, brand: newBrandInput.trim() }));
         setShowNewBrandInput(false);
         setNewBrandInput('');
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleAddNewCategory = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!newCategoryInput.trim()) return;
+    
+    try {
+      const res = await fetch('/api/variables', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'category', value: newCategoryInput.trim() })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setCategoriesList(data.variables.categories);
+        setNewProduct(prev => ({ ...prev, category: newCategoryInput.trim() }));
+        setShowNewCategoryInput(false);
+        setNewCategoryInput('');
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleDeleteAttribute = async (type: 'brand' | 'category', value: string) => {
+    if (!window.confirm(`Are you sure you want to delete the ${type} "${value}"?`)) return;
+    try {
+      const res = await fetch('/api/variables', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type, value })
+      });
+      const data = await res.json();
+      if (data.success) {
+        if (type === 'brand') {
+          setBrandsList(data.variables.brands);
+          if (newProduct.brand === value) setNewProduct(prev => ({ ...prev, brand: '' }));
+        } else {
+          setCategoriesList(data.variables.categories);
+          if (newProduct.category === value) setNewProduct(prev => ({ ...prev, category: '' }));
+        }
       }
     } catch (err) {
       console.error(err);
@@ -101,7 +170,21 @@ export default function AdminDashboard({ initialCatalog, initialQuotes, initialS
 
   useEffect(() => {
     if (isDraftLoaded) {
-      localStorage.setItem('admin_product_draft', JSON.stringify(newProduct));
+      try {
+        localStorage.setItem('admin_product_draft', JSON.stringify(newProduct));
+      } catch (err: any) {
+        if (err.name === 'QuotaExceededError' || err.message.includes('quota')) {
+          try {
+            const fallbackDraft = { ...newProduct, image: '', thumbnails: [] };
+            localStorage.setItem('admin_product_draft', JSON.stringify(fallbackDraft));
+            console.warn('Draft images were too large, saved draft without images.');
+          } catch (fallbackErr) {
+            console.error('Failed to save draft to localStorage', fallbackErr);
+          }
+        } else {
+          console.error('Failed to save draft to localStorage', err);
+        }
+      }
     }
   }, [newProduct, isDraftLoaded]);
   const scrollToPreview = (sectionId: string) => {
@@ -206,6 +289,23 @@ export default function AdminDashboard({ initialCatalog, initialQuotes, initialS
 
   const handleAddProduct = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    let hasErrors = false;
+    const errors: any = {};
+    newProduct.testimonials.forEach((t, i) => {
+      const result = testimonialSchema.safeParse(t);
+      if (!result.success) {
+        hasErrors = true;
+        errors[i] = result.error.flatten().fieldErrors;
+      }
+    });
+    if (hasErrors) {
+      setTestimonialErrors(errors);
+      alert('Please fix validation errors in the testimonials section.');
+      return;
+    }
+    setTestimonialErrors({});
+    
     setIsSubmitting(true);
     
     try {
@@ -246,7 +346,7 @@ export default function AdminDashboard({ initialCatalog, initialQuotes, initialS
           title: '', category: 'MINI CRANES', brand: '', description: '', image: '', thumbnails: [] as string[], specs: [{ label: '', value: '' }], tag: '', videoUrl: '',
           documents: [{ label: '', url: '' }], badges: [] as string[], moq: 1 as number | string, stockStatus: 'In Stock - Ships in 48hrs', 
           pricingTiers: [{ minQty: 1, maxQty: 10, price: 0 }], hideExactPrices: false, 
-          testimonials: [{ clientName: '', reviewText: '', rating: 5, isVerified: false }], 
+          testimonials: [{ customerName: '', businessName: '', email: '', buyerType: 'site_buyer', isVerifiedPurchase: true, rating: 5, title: '', description: '', imageFilenames: [] as string[] }], 
           contactConfig: { phone: '', enableRfqModal: true } 
         });
         localStorage.removeItem('admin_product_draft');
@@ -262,17 +362,19 @@ export default function AdminDashboard({ initialCatalog, initialQuotes, initialS
   };
 
   const handleCancel = () => {
-    if (confirm('Are you sure you want to cancel? All unsaved changes will be lost.')) {
-      setNewProduct({ 
-        title: '', category: 'MINI CRANES', brand: '', description: '', image: '', thumbnails: [] as string[], specs: [{ label: '', value: '' }], tag: '', videoUrl: '',
-        documents: [{ label: '', url: '' }], badges: [] as string[], moq: 1 as number | string, stockStatus: 'In Stock - Ships in 48hrs', 
-        pricingTiers: [{ minQty: 1, maxQty: 10, price: 0 }], hideExactPrices: false, 
-        testimonials: [{ clientName: '', reviewText: '', rating: 5, isVerified: false }], 
-        contactConfig: { phone: '', enableRfqModal: true } 
-      });
-      localStorage.removeItem('admin_product_draft');
-      router.push('/admin');
-    }
+    setShowCloseModal(true);
+  };
+
+  const executeCancel = () => {
+    setNewProduct({ 
+      title: '', category: 'MINI CRANES', brand: '', description: '', image: '', thumbnails: [] as string[], specs: [{ label: '', value: '' }], tag: '', videoUrl: '',
+      documents: [{ label: '', url: '' }], badges: [] as string[], moq: 1 as number | string, stockStatus: 'In Stock - Ships in 48hrs', 
+      pricingTiers: [{ minQty: 1, maxQty: 10, price: 0 }], hideExactPrices: false, 
+      testimonials: [{ customerName: '', businessName: '', email: '', buyerType: 'site_buyer', isVerifiedPurchase: true, rating: 5, title: '', description: '', imageFilenames: [] as string[] }], 
+      contactConfig: { phone: '', enableRfqModal: true } 
+    });
+    localStorage.removeItem('admin_product_draft');
+    router.push('/admin');
   };
 
   const handleSaveDraft = async () => {
@@ -362,12 +464,10 @@ export default function AdminDashboard({ initialCatalog, initialQuotes, initialS
           </button>
         </div>
         <nav className="admin-nav">
-          <button className={`admin-nav-item ${activeTab === 'catalog' ? 'active' : ''}`} onClick={() => router.push('/admin')} title="Catalog Overview">
-            <i className="ri-list-check"></i> {!isSidebarCollapsed && "Catalog Overview"}
+          <button className={`admin-nav-item ${activeTab === 'catalog' ? 'active' : ''}`} onClick={() => router.push('/admin')} title="Products">
+            <i className="ri-list-check"></i> {!isSidebarCollapsed && "Products"}
           </button>
-          <button className={`admin-nav-item ${activeTab === 'add' ? 'active' : ''}`} onClick={() => router.push('/admin/add-item')} title="Add Product">
-            <i className="ri-add-box-line"></i> {!isSidebarCollapsed && "Add Product"}
-          </button>
+
           <button className={`admin-nav-item ${activeTab === 'quotes' ? 'active' : ''}`} onClick={() => router.push('/admin/quotes')} title="Quote Requests">
             <i className="ri-message-3-line"></i> {!isSidebarCollapsed && "Quote Requests"}
             {!isSidebarCollapsed && initialQuotes.length > 0 && <span className="admin-badge">{initialQuotes.length}</span>}
@@ -388,15 +488,31 @@ export default function AdminDashboard({ initialCatalog, initialQuotes, initialS
           <div>
             <div className="admin-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <div>
-                <h1>Catalog Overview</h1>
+                <h1>Products</h1>
                 <p>Manage your {catalog.length} active products.</p>
               </div>
-              <div>
+              <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                <button 
+                  onClick={() => {
+                    setNewProduct({ 
+                      title: '', category: 'MINI CRANES', brand: '', description: '', image: '', thumbnails: [] as string[], specs: [{ label: '', value: '' }], tag: '', videoUrl: '',
+                      documents: [{ label: '', url: '' }], badges: [] as string[], moq: 1 as number | string, stockStatus: 'In Stock - Ships in 48hrs', 
+                      pricingTiers: [{ minQty: 1, maxQty: 10, price: 0 }], hideExactPrices: false, 
+                      testimonials: [{ customerName: '', businessName: '', email: '', buyerType: 'site_buyer', isVerifiedPurchase: true, rating: 5, title: '', description: '', imageFilenames: [] as string[] }], 
+                      contactConfig: { phone: '', enableRfqModal: true } 
+                    });
+                    router.push('/admin/add-item');
+                  }}
+                  className="admin-btn admin-btn-primary"
+                  style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '10px 16px' }}
+                >
+                  <i className="ri-add-line"></i> Add Product
+                </button>
                 <div style={{ position: 'relative' }}>
                   <i className="ri-search-line" style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }}></i>
                   <input 
                     type="text" 
-                    placeholder="Search catalog..." 
+                    placeholder="Search products..." 
                     value={catalogSearch}
                     onChange={(e) => setCatalogSearch(e.target.value)}
                     style={{ padding: '10px 12px 10px 36px', borderRadius: '0.375rem', border: '1px solid #cbd5e1', width: '15.625rem', fontSize: '0.875rem' }}
@@ -404,61 +520,71 @@ export default function AdminDashboard({ initialCatalog, initialQuotes, initialS
                 </div>
               </div>
             </div>
-            <div className="admin-card admin-table-container">
-              <table className="admin-table">
-                <thead>
-                  <tr>
-                    <th>ID</th>
-                    <th>Image</th>
-                    <th>Title</th>
-                    <th>Category</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredCatalog.map((p: any) => (
-                    <tr key={p.id}>
-                      <td>#{p.id}</td>
-                      <td><img src={p.image} alt={p.title} style={{ width: '2.5rem', height: '2.5rem', objectFit: 'cover', borderRadius: '0.25rem' }} /></td>
-                      <td style={{ fontWeight: 600 }}>{p.title}</td>
-                      <td><span className="admin-badge">{p.category}</span></td>
-                      <td>
-                        <div style={{ display: 'flex', gap: '0.5rem' }}>
-                          <Link 
-                            href={`/catalog/${p.id}`}
-                            target="_blank"
-                            style={{ background: 'transparent', border: 'none', color: '#3b82f6', cursor: 'pointer', fontSize: '1.125rem', padding: '0.25rem', display: 'flex', alignItems: 'center' }}
-                            title="View Product on Website"
-                          >
-                            <i className="ri-eye-line"></i>
-                          </Link>
-                          <button 
-                            onClick={() => handleDeleteProduct(p.id)}
-                            style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '1.125rem', padding: '0.25rem' }}
-                            title="Delete Product"
-                          >
-                            <i className="ri-delete-bin-line"></i>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                  {filteredCatalog.length === 0 && (
-                    <tr>
-                      <td colSpan={5} style={{ textAlign: 'center', padding: '2.5rem' }}>No products found.</td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.5rem', marginTop: '1.5rem' }}>
+              {filteredCatalog.map((p: any) => (
+                <div key={p.id} className="admin-card" style={{ padding: '0', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                  <div style={{ height: '180px', overflow: 'hidden', position: 'relative', background: '#f8fafc' }}>
+                    <img src={p.image || 'https://placehold.co/400x300?text=No+Image'} alt={p.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <span className="admin-badge" style={{ position: 'absolute', top: '10px', right: '10px', background: 'white', border: '1px solid #e2e8f0', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>{p.category}</span>
+                  </div>
+                  <div style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', flex: 1 }}>
+                    <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.125rem', color: '#0f172a' }}>{p.title}</h3>
+                    <p style={{ margin: '0 0 1rem 0', color: '#64748b', fontSize: '0.875rem', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{p.description || 'No description available.'}</p>
+                    
+                    <div style={{ marginTop: 'auto', display: 'flex', gap: '0.75rem', paddingTop: '1rem', borderTop: '1px solid #f1f5f9' }}>
+                      <Link 
+                        href={`/catalog/${p.id}`}
+                        target="_blank"
+                        className="admin-btn admin-btn-secondary"
+                        style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', background: '#f8fafc', color: '#475569', border: '1px solid #e2e8f0' }}
+                      >
+                        <i className="ri-eye-line"></i> View
+                      </Link>
+                      <button 
+                        onClick={() => {
+                          setNewProduct({
+                            ...p,
+                            hideExactPrices: p.hideExactPrices || false,
+                            testimonials: p.testimonials?.length ? p.testimonials : [{ customerName: '', businessName: '', email: '', buyerType: 'site_buyer', isVerifiedPurchase: true, rating: 5, title: '', description: '', imageFilenames: [] as string[] }],
+                            pricingTiers: p.pricingTiers?.length ? p.pricingTiers : [{ minQty: 1, maxQty: 10, price: 0 }],
+                            specs: p.specs?.length ? p.specs : [{ label: '', value: '' }]
+                          });
+                          router.push('/admin/add-item');
+                        }}
+                        className="admin-btn admin-btn-primary"
+                        style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}
+                      >
+                        <i className="ri-edit-line"></i> Edit
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {filteredCatalog.length === 0 && (
+                <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '3rem', background: '#fff', borderRadius: '0.5rem', border: '1px dashed #cbd5e1' }}>
+                  <i className="ri-inbox-line" style={{ fontSize: '3rem', color: '#94a3b8', marginBottom: '1rem', display: 'block' }}></i>
+                  <h3 style={{ margin: '0 0 0.5rem 0', color: '#334155' }}>No products found</h3>
+                  <p style={{ margin: 0, color: '#64748b' }}>Try adjusting your search or add a new product.</p>
+                </div>
+              )}
             </div>
           </div>
         )}
 
         {activeTab === 'add' && (
           <div>
-            <div className="admin-header">
-              <h1>Add New Product</h1>
-              <p>Publish new equipment directly to your catalog.</p>
+            <div className="admin-header" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem' }}>
+              <div>
+                <h1 style={{ margin: 0 }}>Add New Product</h1>
+                <p style={{ margin: '0.25rem 0 0 0' }}>Publish new equipment directly to your catalog.</p>
+              </div>
+              <button 
+                onClick={() => setShowCloseModal(true)} 
+                style={{ background: 'transparent', border: 'none', fontSize: '1.75rem', cursor: 'pointer', color: '#64748b', padding: '0', display: 'flex', alignItems: 'center' }}
+                title="Close"
+              >
+                <i className="ri-close-line"></i>
+              </button>
             </div>
             
             <div className="admin-split-layout">
@@ -473,34 +599,84 @@ export default function AdminDashboard({ initialCatalog, initialQuotes, initialS
                     </div>
                     <div className="admin-form-group">
                       <label htmlFor="category">Category</label>
-                      <select id="category" value={newProduct.category} onChange={e => setNewProduct({...newProduct, category: e.target.value})}>
-                        <option value="MINI CRANES">Mini Cranes</option>
-                        <option value="CONCRETE MIXERS">Concrete Mixers</option>
-                        <option value="MATERIAL HOISTS">Material Hoists</option>
-                        <option value="REBAR EQUIPMENT">Rebar Equipment</option>
-                        <option value="COMPACTION">Compaction</option>
-                      </select>
+                      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                        <select 
+                          id="category" 
+                          value={newProduct.category} 
+                          onChange={e => {
+                            if (e.target.value === 'add_new') {
+                              setShowNewCategoryInput(true);
+                            } else {
+                              setShowNewCategoryInput(false);
+                              setNewProduct({...newProduct, category: e.target.value});
+                            }
+                          }}
+                          style={{ flex: 1 }}
+                        >
+                          <option value="">Select Category</option>
+                          {categoriesList.map((cat, i) => (
+                            <option key={i} value={cat}>{cat}</option>
+                          ))}
+                          <option value="add_new">+ Add Category</option>
+                        </select>
+                        {newProduct.category && newProduct.category !== 'add_new' && (
+                          <button 
+                            type="button" 
+                            onClick={() => handleDeleteAttribute('category', newProduct.category)}
+                            title="Delete Selected Category"
+                            style={{ padding: '0.5rem', background: '#fee2e2', color: '#ef4444', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                          >
+                            <i className="ri-close-line" style={{ fontSize: '1.25rem' }}></i>
+                          </button>
+                        )}
+                      </div>
+                      {showNewCategoryInput && (
+                        <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+                          <input 
+                            type="text" 
+                            value={newCategoryInput}
+                            onChange={(e) => setNewCategoryInput(e.target.value)}
+                            placeholder="Enter new category" 
+                            style={{ flex: 1, padding: '10px 12px', borderRadius: '0.375rem', border: '1px solid #cbd5e1' }}
+                          />
+                          <button onClick={handleAddNewCategory} type="button" className="admin-btn admin-btn-primary" style={{ padding: '8px 16px' }}>Add</button>
+                          <button onClick={() => setShowNewCategoryInput(false)} type="button" className="admin-btn admin-btn-secondary" style={{ padding: '8px 16px', background: '#f1f5f9', color: '#475569', border: 'none' }}>Cancel</button>
+                        </div>
+                      )}
                     </div>
                     <div className="admin-form-group">
                       <label htmlFor="brand">Brand</label>
-                      <select 
-                        id="brand" 
-                        value={newProduct.brand} 
-                        onChange={e => {
-                          if (e.target.value === 'add_new') {
-                            setShowNewBrandInput(true);
-                          } else {
-                            setShowNewBrandInput(false);
-                            setNewProduct({...newProduct, brand: e.target.value});
-                          }
-                        }}
-                      >
-                        <option value="">Select Brand</option>
-                        {brandsList.map((brand, i) => (
-                          <option key={i} value={brand}>{brand}</option>
-                        ))}
-                        <option value="add_new">+ Add Brand</option>
-                      </select>
+                      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                        <select 
+                          id="brand" 
+                          value={newProduct.brand} 
+                          onChange={e => {
+                            if (e.target.value === 'add_new') {
+                              setShowNewBrandInput(true);
+                            } else {
+                              setShowNewBrandInput(false);
+                              setNewProduct({...newProduct, brand: e.target.value});
+                            }
+                          }}
+                          style={{ flex: 1 }}
+                        >
+                          <option value="">Select Brand</option>
+                          {brandsList.map((brand, i) => (
+                            <option key={i} value={brand}>{brand}</option>
+                          ))}
+                          <option value="add_new">+ Add Brand</option>
+                        </select>
+                        {newProduct.brand && newProduct.brand !== 'add_new' && (
+                          <button 
+                            type="button" 
+                            onClick={() => handleDeleteAttribute('brand', newProduct.brand)}
+                            title="Delete Selected Brand"
+                            style={{ padding: '0.5rem', background: '#fee2e2', color: '#ef4444', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                          >
+                            <i className="ri-close-line" style={{ fontSize: '1.25rem' }}></i>
+                          </button>
+                        )}
+                      </div>
                       {showNewBrandInput && (
                         <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
                           <input 
@@ -711,31 +887,106 @@ export default function AdminDashboard({ initialCatalog, initialQuotes, initialS
                         {newProduct.testimonials.map((test, index) => (
                           <div key={index} style={{ border: '1px solid #e2e8f0', padding: '1rem', borderRadius: '0.5rem', background: '#fff', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                             <div style={{ display: 'flex', gap: '0.75rem' }}>
-                              <input type="text" value={test.clientName} onChange={(e) => {
-                                const newTests = [...newProduct.testimonials];
-                                newTests[index].clientName = e.target.value;
-                                setNewProduct({...newProduct, testimonials: newTests});
-                              }} placeholder="Client Name / Enterprise Title" style={{ flex: 1 }} />
-                              <input type="number" min="1" max="5" value={test.rating} onChange={(e) => {
-                                const newTests = [...newProduct.testimonials];
-                                newTests[index].rating = parseInt(e.target.value) || 5;
-                                setNewProduct({...newProduct, testimonials: newTests});
-                              }} placeholder="Rating (1-5)" style={{ width: '6.25rem' }} />
+                              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                <input type="text" value={test.customerName} onChange={(e) => {
+                                  const newTests = [...newProduct.testimonials];
+                                  newTests[index].customerName = e.target.value;
+                                  setNewProduct({...newProduct, testimonials: newTests});
+                                }} placeholder="Customer Name *" />
+                                {testimonialErrors[index]?.customerName && <span style={{ color: '#ef4444', fontSize: '0.75rem' }}>{testimonialErrors[index].customerName[0]}</span>}
+                              </div>
+                              <div style={{ flex: 1 }}>
+                                <input type="text" value={test.businessName} onChange={(e) => {
+                                  const newTests = [...newProduct.testimonials];
+                                  newTests[index].businessName = e.target.value;
+                                  setNewProduct({...newProduct, testimonials: newTests});
+                                }} placeholder="Business Name (Optional)" />
+                              </div>
                             </div>
-                            <textarea rows={2} value={test.reviewText} onChange={(e) => {
-                              const newTests = [...newProduct.testimonials];
-                              newTests[index].reviewText = e.target.value;
-                              setNewProduct({...newProduct, testimonials: newTests});
-                            }} placeholder="Quote / Review Text"></textarea>
-                            
+                            <div style={{ display: 'flex', gap: '0.75rem' }}>
+                              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                <input type="email" value={test.email} onChange={(e) => {
+                                  const newTests = [...newProduct.testimonials];
+                                  newTests[index].email = e.target.value;
+                                  setNewProduct({...newProduct, testimonials: newTests});
+                                }} placeholder="Email (Optional)" />
+                                {testimonialErrors[index]?.email && <span style={{ color: '#ef4444', fontSize: '0.75rem' }}>{testimonialErrors[index].email[0]}</span>}
+                              </div>
+                              <div style={{ flex: 1 }}>
+                                <select value={test.buyerType} onChange={(e) => {
+                                  const newTests = [...newProduct.testimonials];
+                                  newTests[index].buyerType = e.target.value;
+                                  setNewProduct({...newProduct, testimonials: newTests});
+                                }}>
+                                  <option value="site_buyer">Site Buyer</option>
+                                  <option value="store_buyer">Store Buyer</option>
+                                  <option value="unverified">Unverified</option>
+                                </select>
+                              </div>
+                            </div>
+                            <div style={{ display: 'flex', gap: '0.75rem' }}>
+                              <div style={{ flex: 2 }}>
+                                <input type="text" value={test.title} onChange={(e) => {
+                                  const newTests = [...newProduct.testimonials];
+                                  newTests[index].title = e.target.value;
+                                  setNewProduct({...newProduct, testimonials: newTests});
+                                }} placeholder="Headline (Optional)" />
+                              </div>
+                              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                <input type="number" min="1" max="5" value={test.rating} onChange={(e) => {
+                                  const newTests = [...newProduct.testimonials];
+                                  newTests[index].rating = parseInt(e.target.value) || 5;
+                                  setNewProduct({...newProduct, testimonials: newTests});
+                                }} placeholder="Rating (1-5)" />
+                                {testimonialErrors[index]?.rating && <span style={{ color: '#ef4444', fontSize: '0.75rem' }}>{testimonialErrors[index].rating[0]}</span>}
+                              </div>
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                              <textarea rows={2} value={test.description} onChange={(e) => {
+                                const newTests = [...newProduct.testimonials];
+                                newTests[index].description = e.target.value;
+                                setNewProduct({...newProduct, testimonials: newTests});
+                              }} placeholder="Review Description *"></textarea>
+                              {testimonialErrors[index]?.description && <span style={{ color: '#ef4444', fontSize: '0.75rem' }}>{testimonialErrors[index].description[0]}</span>}
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                              <label style={{ fontSize: '0.75rem', fontWeight: 600 }}>Testimonial Images (Base64 for preview, will be uploaded later)</label>
+                              <input type="file" multiple accept="image/*" onChange={async (e) => {
+                                const files = Array.from(e.target.files || []);
+                                if (files.length > 0) {
+                                  const base64Images = await Promise.all(files.map((file) => new Promise<string>((resolve) => {
+                                    const reader = new FileReader();
+                                    reader.onloadend = () => resolve(reader.result as string);
+                                    reader.readAsDataURL(file);
+                                  })));
+                                  const newTests = [...newProduct.testimonials];
+                                  newTests[index].imageFilenames = [...(newTests[index].imageFilenames || []), ...base64Images];
+                                  setNewProduct({...newProduct, testimonials: newTests});
+                                }
+                              }} style={{ fontSize: '0.75rem' }} />
+                              {test.imageFilenames && test.imageFilenames.length > 0 && (
+                                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.5rem' }}>
+                                  {test.imageFilenames.map((img, i) => (
+                                    <div key={i} style={{ position: 'relative' }}>
+                                      <img src={img} style={{ width: '2rem', height: '2rem', objectFit: 'cover' }} alt="testimonial" />
+                                      <button type="button" onClick={() => {
+                                        const newTests = [...newProduct.testimonials];
+                                        newTests[index].imageFilenames = newTests[index].imageFilenames.filter((_, imgIdx) => imgIdx !== i);
+                                        setNewProduct({...newProduct, testimonials: newTests});
+                                      }} style={{ position: 'absolute', top: -5, right: -5, background: 'red', color: 'white', border: 'none', borderRadius: '50%', cursor: 'pointer', width: '1rem', height: '1rem', fontSize: '0.5rem' }}>x</button>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                <input type="checkbox" id={`verified-${index}`} checked={test.isVerified} style={{ width: 'auto' }} onChange={(e) => {
+                                <input type="checkbox" id={`verified-${index}`} checked={test.isVerifiedPurchase} style={{ width: 'auto' }} onChange={(e) => {
                                   const newTests = [...newProduct.testimonials];
-                                  newTests[index].isVerified = e.target.checked;
+                                  newTests[index].isVerifiedPurchase = e.target.checked;
                                   setNewProduct({...newProduct, testimonials: newTests});
                                 }} />
-                                <label htmlFor={`verified-${index}`} style={{ margin: 0, fontSize: '0.8125rem', fontWeight: 500, whiteSpace: 'nowrap', display: 'inline' }}>Verified Site Buyer</label>
+                                <label htmlFor={`verified-${index}`} style={{ margin: 0, fontSize: '0.8125rem', fontWeight: 500, whiteSpace: 'nowrap', display: 'inline' }}>Verified Purchase</label>
                               </div>
                               <button type="button" onClick={() => {
                                 const newTests = newProduct.testimonials.filter((_, i) => i !== index);
@@ -744,7 +995,7 @@ export default function AdminDashboard({ initialCatalog, initialQuotes, initialS
                             </div>
                           </div>
                         ))}
-                        <button type="button" onClick={() => setNewProduct({...newProduct, testimonials: [...newProduct.testimonials, { clientName: '', reviewText: '', rating: 5, isVerified: false }]})} style={{ alignSelf: 'flex-start', padding: '8px 16px', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '0.25rem', cursor: 'pointer', fontSize: '0.8125rem', color: '#475569' }}>
+                        <button type="button" onClick={() => setNewProduct({...newProduct, testimonials: [...newProduct.testimonials, { customerName: '', businessName: '', email: '', buyerType: 'site_buyer', isVerifiedPurchase: true, rating: 5, title: '', description: '', imageFilenames: [] }]})} style={{ alignSelf: 'flex-start', padding: '8px 16px', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '0.25rem', cursor: 'pointer', fontSize: '0.8125rem', color: '#475569' }}>
                           + Add Testimonial
                         </button>
                       </div>
@@ -755,7 +1006,7 @@ export default function AdminDashboard({ initialCatalog, initialQuotes, initialS
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '1.5rem' }}>
                     <div style={{ display: 'flex', gap: '0.75rem' }}>
                       <button type="button" onClick={handleCancel} disabled={isSubmitting} style={{ flex: 1, padding: '1rem', fontSize: '1rem', background: '#ef4444', border: '1px solid #dc2626', color: '#ffffff', borderRadius: '0.25rem', cursor: 'pointer', fontWeight: 600, transition: 'all 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#dc2626'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#ef4444'}>
-                        Cancel
+                        Delete
                       </button>
                       <button type="submit" className="admin-btn-primary" disabled={isSubmitting} style={{ flex: 1, padding: '1rem', fontSize: '1rem', borderRadius: '0.25rem' }}>
                         {isSubmitting ? 'Publishing...' : 'Publish'}
@@ -866,6 +1117,75 @@ export default function AdminDashboard({ initialCatalog, initialQuotes, initialS
           </div>
         )}
       </main>
+
+      {/* Modals for Add Item */}
+      {showCloseModal && (
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, animation: 'fadeInBlur 0.2s ease-out forwards' }}>
+          <div style={{ background: '#fff', padding: '2rem', borderRadius: '0.5rem', width: '90%', maxWidth: '400px', position: 'relative', animation: 'popIn 0.2s ease-out forwards' }}>
+            <button 
+              onClick={() => setShowCloseModal(false)}
+              style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'transparent', border: 'none', fontSize: '1.25rem', cursor: 'pointer', color: '#64748b' }}
+            >
+              <i className="ri-close-line"></i>
+            </button>
+            <h2 style={{ marginTop: 0, color: '#0f172a', fontSize: '1.75rem', fontWeight: 800 }}>Save Progress?</h2>
+            <p style={{ color: '#475569', marginBottom: '1.5rem' }}>Would you like to save your current progress as a draft before leaving?</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <button 
+                onClick={() => {
+                  handleSaveDraft();
+                  setShowCloseModal(false);
+                }}
+                className="admin-btn admin-btn-primary"
+                style={{ padding: '0.75rem' }}
+              >
+                Save as draft
+              </button>
+              <button 
+                onClick={() => {
+                  setShowCloseModal(false);
+                  setShowConfirmCancelModal(true);
+                }}
+                className="admin-btn admin-btn-secondary"
+                style={{ background: '#f8fafc', color: '#ef4444', border: '1px solid #fee2e2', padding: '0.75rem' }}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showConfirmCancelModal && (
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, animation: 'fadeInBlur 0.2s ease-out forwards' }}>
+          <div style={{ background: '#fff', padding: '2rem', borderRadius: '0.5rem', width: '90%', maxWidth: '400px', animation: 'popIn 0.2s ease-out forwards' }}>
+            <h2 style={{ marginTop: 0, color: '#0f172a', fontSize: '1.75rem', fontWeight: 800 }}>Are you sure?</h2>
+            <p style={{ color: '#475569', marginBottom: '1.5rem' }}>Are you sure you want to delete this draft? You will lose all your current progress.</p>
+            <div style={{ display: 'flex', gap: '1rem' }}>
+              <button 
+                onClick={() => {
+                  setShowConfirmCancelModal(false);
+                  setShowCloseModal(true);
+                }}
+                className="admin-btn admin-btn-secondary"
+                style={{ flex: 1, padding: '0.75rem' }}
+              >
+                No
+              </button>
+              <button 
+                onClick={() => {
+                  setShowConfirmCancelModal(false);
+                  executeCancel();
+                }}
+                className="admin-btn admin-btn-primary"
+                style={{ flex: 1, background: '#ef4444', borderColor: '#ef4444', padding: '0.75rem' }}
+              >
+                Yes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
